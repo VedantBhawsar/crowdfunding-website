@@ -13,10 +13,72 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id            Int            @id @default(autoincrement())
+  wallet        String         @unique
+  email         String         @unique
+  name          String?
+  bio           String?
+  campaigns     Campaign[]
+  contributions Contribution[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Transaction   Transaction[]
+  Verification  Verification[]
 }
 
+model Campaign {
+  id            Int            @id @default(autoincrement())
+  title         String
+  description   String
+  goalAmount    Float
+  raisedAmount  Float          @default(0)
+  creator       User           @relation(fields: [creatorId], references: [id])
+  creatorId     Int
+  contributions Contribution[]
+  startDate     DateTime
+  endDate       DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  Reward        Reward[]
+  Transaction   Transaction[]
+}
+
+model Contribution {
+  id            Int      @id @default(autoincrement())
+  amount        Float
+  campaign      Campaign @relation(fields: [campaignId], references: [id])
+  campaignId    Int
+  contributor   User     @relation(fields: [contributorId], references: [id])
+  contributorId Int
+  createdAt     DateTime @default(now())
+}
+
+model Reward {
+  id          Int      @id @default(autoincrement())
+  description String
+  amount      Float // The minimum contribution required for the reward
+  campaign    Campaign @relation(fields: [campaignId], references: [id])
+  campaignId  Int
+  createdAt   DateTime @default(now())
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  txHash        String   @unique
+  campaign      Campaign @relation(fields: [campaignId], references: [id])
+  campaignId    Int
+  contributor   User     @relation(fields: [contributorId], references: [id])
+  contributorId Int
+  amount        Float
+  createdAt     DateTime @default(now())
+}
+
+model Verification {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  nonce     String   @unique // For signing requests
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
