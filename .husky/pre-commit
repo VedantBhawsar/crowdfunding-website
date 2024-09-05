@@ -1,2 +1,28 @@
-npm
-npm run build
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Linting command
+lint_command="npm run lint"
+
+# Building command
+build_command="npm run build"
+
+# Pre-commit hook
+pre_commit_hook() {
+    echo "Running linting..."
+    $lint_command
+    if [ $? -ne 0 ]; then
+        echo "Linting failed. Aborting commit."
+        exit 1
+    fi
+
+    echo "Running build..."
+    $build_command
+    if [ $? -ne 0 ]; then
+        echo "Build failed. Aborting commit."
+        exit 1
+    fi
+}
+
+# Register pre-commit hook
+pre_commit_hook
