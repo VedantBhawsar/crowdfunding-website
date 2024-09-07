@@ -57,7 +57,7 @@ model Contribution {
 model Reward {
   id          Int      @id @default(autoincrement())
   description String
-  amount      Float // The minimum contribution required for the reward
+  amount      Float
   campaign    Campaign @relation(fields: [campaignId], references: [id])
   campaignId  Int
   createdAt   DateTime @default(now())
