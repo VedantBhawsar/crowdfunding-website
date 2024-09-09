@@ -16,11 +16,11 @@ import { FaGithub, FaGoogle } from "react-icons/fa";
 import Link from "next/link";
 import { Metadata } from "next";
 
-export const meta = {
-  title: "Login to Your Account - Secure Access | YourSite",
-  description:
-    "Sign in to YourSite using your email and password or log in with Google or GitHub for a fast, secure experience.",
-} satisfies Metadata;
+// export const metadata = {
+//   title: "Login to Your Account - Secure Access | YourSite",
+//   description:
+//     "Sign in to YourSite using your email and password or log in with Google or GitHub for a fast, secure experience.",
+// } satisfies Metadata;
 
 export default function SignInPage() {
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -81,7 +81,7 @@ export default function SignInPage() {
             </div>
             <Separator className="mt-4 mb-2" />
             <Label>
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link href="/sign-up" className="text-primary hover:underline">
                 Register here
               </Link>
