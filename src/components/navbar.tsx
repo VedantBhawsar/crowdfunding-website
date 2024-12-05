@@ -53,7 +53,7 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mx-auto  border-b bg-white/80 flex w-full  z-50 justify-center fixed" 
+      className="mx-auto  border-b bg-white/80 flex w-full  z-50 justify-center fixed"
     >
       <div className="w-full  backdrop-blur-md max-w-7xl  mx-auto ">
         <div className="px-5 md:px-10 lg:max-w-7xl w-full py-4 flex justify-between items-center">
@@ -84,7 +84,7 @@ const Navbar = () => {
               animate="visible"
               className="flex gap-5 items-center"
             >
-              {["Home", "Projects", "About"].map((item, index) => (
+              {/* {["Home", "Projects", "About"].map((item, index) => (
                 <motion.li key={item} variants={itemVariants}>
                   <Link
                     href={"/"}
@@ -93,7 +93,25 @@ const Navbar = () => {
                     {item}
                   </Link>
                 </motion.li>
+              ))} */}
+
+              {["Home", "Projects", "About"].map((item) => (
+                <motion.li key={item} variants={itemVariants}>
+                  <Link
+                    href={
+                      item === "Home"
+                        ? "/" // Link to Home page
+                        : item === "Projects"
+                          ? "/projects" // Link to Projects page
+                          : "/about" // Link to About page
+                    }
+                    className="text-sm text-gray-700 hover:text-indigo-600 hover:font-semibold transition-colors"
+                  >
+                    {item}
+                  </Link>
+                </motion.li>
               ))}
+
 
               <div className="flex gap-2 items-center ml-4">
                 <Link href={"/sign-in"}>
@@ -127,15 +145,21 @@ const Navbar = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                       <DropdownMenuItem>
-                        Account
+                        <Link href="/account" className="flex items-center w-full">
+                          Account
+                        </Link>
                         <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        Projects
+                        <Link href="/projects" className="flex items-center w-full">
+                          Projects
+                        </Link>
                         <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        Settings
+                      <Link href="/settings" className="flex items-center w-full">
+                         Settings
+                        </Link>
                         <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                       </DropdownMenuItem>
                     </DropdownMenuGroup>

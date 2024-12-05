@@ -13,7 +13,7 @@ const inter = Poppins({
 
 export const metadata: Metadata = {
   title: "Crowdfunding website",
-  description: "This is crowdfunding website",
+  description: "This is a crowdfunding website",
 };
 
 export default function RootLayout({
@@ -23,13 +23,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <div className="bg-gradient-to-br from-indigo-50 to-white">
-            <Navbar />
-            <div className="mx-auto max-w-7xl h-full ">{children}</div>
-            <Footer />
+          {/* Navbar */}
+          <Navbar />
+
+          {/* Content Area */}
+          <div
+            className="flex-1 flex flex-col justify-center items-center mx-auto max-w-7xl w-full px-4 pt-16"
+            style={{
+              paddingBottom: "20px", // Space for footer
+              boxSizing: "border-box",
+            }}
+          >
+            {children}
           </div>
+
+          {/* Footer */}
+          <Footer />
         </ThemeProvider>
       </body>
     </html>
