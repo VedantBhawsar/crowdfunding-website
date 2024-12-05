@@ -25,9 +25,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          <Navbar />
-          {children}
-          <Footer />
+          <div className="bg-gradient-to-br from-indigo-50 to-white">
+            <Navbar />
+            <div className="mx-auto max-w-7xl h-full ">{children}</div>
+            <Footer />
+          </div>
         </ThemeProvider>
       </body>
     </html>
