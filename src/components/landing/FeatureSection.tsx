@@ -56,10 +56,10 @@ const FeatureSection = () => {
   };
 
   return (
-    <div className="py-16 bg-white">
-      <div className="container mx-auto px-4">
+    <div className="py-16  z-50 relative">
+      <div className="mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-4xl font-bold text-black mb-4">
             Why Choose DecentraliFund?
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
@@ -78,8 +78,7 @@ const FeatureSection = () => {
             <motion.div 
               key={index} 
               variants={itemVariants}
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              
             >
               <Card className="h-full hover:shadow-lg transition-shadow">
                 <CardHeader>
