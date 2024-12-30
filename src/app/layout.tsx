@@ -1,19 +1,24 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import Providers from "@/components/providers";
 
-const inter = Poppins({
-  weight: ["400"],
-  preload: true,
+const poppins = Poppins({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
+  variable: "--font-poppins",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Crowdfunding website",
   description: "This is a crowdfunding website",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({
@@ -22,26 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
-          {/* Navbar */}
-          <Navbar />
-
-          {/* Content Area */}
-          <div
-            className="flex-1 flex flex-col justify-center items-center mx-auto max-w-7xl w-full px-4 pt-16"
-            style={{
-              paddingBottom: "20px", // Space for footer
-              boxSizing: "border-box",
-            }}
-          >
-            {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${poppins.variable} font-sans antialiased`}>
+        <Providers>
+          <div className="min-h-screen flex flex-col ">
+            <Navbar />
+            <main className="flex-grow container mx-auto px-0 md:px-6 py-4 md:py-8">
+              {children}
+            </main>
+            <Footer />
           </div>
-
-          {/* Footer */}
-          <Footer />
-        </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

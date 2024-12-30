@@ -15,9 +15,26 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Menu, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { signOut, useSession } from "next-auth/react";
+
+const links = [
+  {
+    label: "Home",
+    url: "/",
+  },
+  {
+    label: "Projects",
+    url: "/projects",
+  },
+  {
+    label: "About",
+    url: "/about",
+  },
+];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { data } = useSession();
 
   const menuVariants = {
     hidden: {
@@ -53,7 +70,7 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mx-auto  border-b bg-white/80 flex w-full  z-50 justify-center fixed"
+      className="mx-auto  border-b bg-white/80 flex w-full  z-50 justify-center "
     >
       <div className="w-full  backdrop-blur-md max-w-7xl  mx-auto ">
         <div className="px-5 md:px-10 lg:max-w-7xl w-full py-4 flex justify-between items-center">
@@ -84,34 +101,33 @@ const Navbar = () => {
               animate="visible"
               className="flex gap-5 items-center"
             >
-              {/* {["Home", "Projects", "About"].map((item, index) => (
-                <motion.li key={item} variants={itemVariants}>
-                  <Link
-                    href={"/"}
-                    className="text-sm text-gray-700 hover:text-indigo-600 hover:font-semibold transition-colors"
+              <div className="flex gap-4 px-auto">
+                {links.map((link, index) => (
+                  <motion.li
+                    key={index}
+                    initial={{
+                      opacity: 0,
+                      x: -20,
+                    }}
+                    animate={{
+                      opacity: 1,
+                      x: 0,
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      ease: "linear",
+                      delay: 0.3 * index,
+                    }}
                   >
-                    {item}
-                  </Link>
-                </motion.li>
-              ))} */}
-
-              {["Home", "Projects", "About"].map((item) => (
-                <motion.li key={item} variants={itemVariants}>
-                  <Link
-                    href={
-                      item === "Home"
-                        ? "/" // Link to Home page
-                        : item === "Projects"
-                          ? "/projects" // Link to Projects page
-                          : "/about" // Link to About page
-                    }
-                    className="text-sm text-gray-700 hover:text-indigo-600 hover:font-semibold transition-colors"
-                  >
-                    {item}
-                  </Link>
-                </motion.li>
-              ))}
-
+                    <Link
+                      href={link.url}
+                      className=" text-gray-700 hover:text-indigo-600 hover:font-semibold transition-colors"
+                    >
+                      {link.label}
+                    </Link>
+                  </motion.li>
+                ))}
+              </div>
 
               <div className="flex gap-2 items-center ml-4">
                 <Link href={"/sign-in"}>
@@ -132,50 +148,46 @@ const Navbar = () => {
               <div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Avatar className="w-9 h-9 cursor-pointer">
-                      <AvatarImage
-                        src="https://github.com/shadcn.png"
-                        alt="@shadcn"
-                      />
-                      <AvatarFallback>CN</AvatarFallback>
-                    </Avatar>
+                    {data?.user && (
+                      <Avatar className="w-9 h-9 cursor-pointer">
+                        <AvatarImage
+                          src={data?.user?.image || ""}
+                          alt={data?.user?.name || ""}
+                        />
+                        <AvatarFallback></AvatarFallback>
+                      </Avatar>
+                    )}
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-56" align="end">
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                       <DropdownMenuItem>
-                        <Link href="/account" className="flex items-center w-full">
+                        <Link
+                          href="/account"
+                          className="flex items-center w-full"
+                        >
                           Account
                         </Link>
-                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        <Link href="/projects" className="flex items-center w-full">
+                        <Link
+                          href="/projects"
+                          className="flex items-center w-full"
+                        >
                           Projects
                         </Link>
-                        <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                      <Link href="/settings" className="flex items-center w-full">
-                         Settings
+                        <Link
+                          href="/settings"
+                          className="flex items-center w-full"
+                        >
+                          Settings
                         </Link>
-                        <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
                       </DropdownMenuItem>
+                      <DropdownMenuItem>Log out</DropdownMenuItem>
                     </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>GitHub</DropdownMenuItem>
-                    <DropdownMenuItem>Support</DropdownMenuItem>
-                    <DropdownMenuItem disabled>API</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Button
-                        variant={"outline"}
-                        className="w-full bg-red-500 text-white"
-                      >
-                        Log out
-                      </Button>
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -209,12 +221,12 @@ const Navbar = () => {
                     </motion.li>
                   ))}
                   <div className="flex flex-col space-y-2 pt-4">
-                    <Link href={"/sign-in"}>
+                    <Link href={"/signin"}>
                       <Button variant={"outline"} className="w-full">
                         Sign in
                       </Button>
                     </Link>
-                    <Link href={"/sign-up"}>
+                    <Link href={"/signup"}>
                       <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
                         Sign up
                       </Button>

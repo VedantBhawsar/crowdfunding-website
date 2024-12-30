@@ -8,18 +8,18 @@ export const TestimonialSection = () => {
         name: "Sarah Johnson",
         project: "Green Tech Startup",
         quote: "Our sustainable energy project went from concept to reality thanks to this incredible platform!",
-        image: "/api/placeholder/80/80"
+        image: "https://plus.unsplash.com/premium_photo-1661768742069-4de270a8d9fa?q=80&w=2072&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
       },
       {
-        name: "Mike Rodriguez",
+        name: "Nehali jaiswal",
         project: "Community Art Initiative",
         quote: "Blockchain crowdfunding made it easy to connect with supporters who believe in our vision.",
-        image: "/api/placeholder/80/80"
+        image: "/nehali.jpg"
       }
     ];
   
     return (
-      <section className="py-16 bg-white">
+      <section className="py-16 ">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
@@ -45,7 +45,7 @@ export const TestimonialSection = () => {
                   <img 
                     src={testimonial.image} 
                     alt={testimonial.name} 
-                    className="w-16 h-16 rounded-full mr-4"
+                    className="w-16 h-16 rounded-full mr-4 object-cover"
                   />
                   <div>
                     <h3 className="font-semibold text-gray-900">{testimonial.name}</h3>
