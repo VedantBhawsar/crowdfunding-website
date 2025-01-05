@@ -1,7 +1,9 @@
 "use client";
 import { motion } from "framer-motion";
 import { RocketIcon, UsersIcon, WalletIcon } from "lucide-react";
-import { Card, CardContent, CardHeader } from "../ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { HeaderText } from "../ui/headerText";
 
 export default function HowItWorksSection() {
   const steps = [
@@ -10,68 +12,73 @@ export default function HowItWorksSection() {
       description:
         "Develop a compelling project proposal that outlines clear objectives and presents a powerful narrative.",
       icon: RocketIcon,
-      color: "text-indigo-500 bg-indigo-50",
+      variant: "primary",
     },
     {
       title: "Attract Backers",
       description:
         "Engage potential supporters through transparent communication and platform tools.",
       icon: UsersIcon,
-      color: "text-green-500 bg-green-50",
+      variant: "success",
     },
     {
       title: "Get Funded",
       description:
-        "Receive blockchain-verified funding directly from your global community of supporters.",
+        "Build meaningful connections with potential supporters by transparency in communication and leveraging platform tools.",
       icon: WalletIcon,
-      color: "text-orange-500 bg-orange-50",
+      variant: "warning",
     },
   ];
 
   return (
     <section className="py-20">
-      <div className="container mx-auto px-4">
+      <div className="container">
+        <HeaderText
+          title="How Our Platform Works?"
+          description="Transform your innovative ideas into reality through a simple,
+            transparent, and powerful crowdfunding process"
+        />
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-16"
+          className="text-center mb-16 space-y-4"
         >
-          <h2 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight">
-            How Our Platform Works?
-          </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Transform your innovative ideas into reality through a simple,
-            transparent, and powerful crowdfunding process
-          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight"></h2>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto"></p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
           {steps.map((step, index) => (
             <motion.div
               key={step.title}
-              className="bg-white rounded-lg border shadow-sm hover:shadow transition-all duration-300 overflow-hidden"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
             >
-              <Card className="">
+              <Card className="h-full transition-shadow hover:shadow-md">
                 <CardHeader>
-                  <div
-                    className={`flex justify-start w-fit  items-center p-4 px-5 rounded-full ${step.color} inline-block`}
-                  >
-                    <step.icon
-                      className={`w-5 h-5  mr-2 font-bold ${
-                        step.color.split(" ")[0]
-                      }`}
-                      strokeWidth={1.5}
-                    />
-                    <h3 className={`text-xl  ${step.color}`}>{step.title}</h3>
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={cn(
+                        "p-3 rounded-full",
+                        "bg-primary/10 text-primary"
+                      )}
+                    >
+                      <step.icon className="w-5 h-5" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">
+                      {step.title}
+                    </h3>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 leading-relaxed">
+                <CardContent className="space-y-4">
+                  <p className="text-muted-foreground leading-relaxed">
                     {step.description}
                   </p>
-                  <div className="bg-gray-50 mt-3 ">
-                    <div className="text-base font-medium text-gray-500">
+                  <div className="bg-muted/50 p-2 rounded-full">
+                    <div className="text-sm font-medium text-muted-foreground">
                       Step {index + 1}
                     </div>
                   </div>

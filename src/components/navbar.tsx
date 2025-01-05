@@ -10,39 +10,29 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Menu, X } from "lucide-react";
+import { Menu, Moon, Sun, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { signOut, useSession } from "next-auth/react";
+import { useTheme } from "next-themes";
 
 const links = [
-  {
-    label: "Home",
-    url: "/",
-  },
-  {
-    label: "Projects",
-    url: "/projects",
-  },
-  {
-    label: "About",
-    url: "/about",
-  },
+  { label: "Home", url: "/" },
+  { label: "Projects", url: "/projects" },
+  { label: "About", url: "/about" },
 ];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { data } = useSession();
+  const { setTheme } = useTheme();
 
   const menuVariants = {
     hidden: {
       opacity: 0,
       y: -20,
-      transition: {
-        when: "afterChildren",
-      },
+      transition: { when: "afterChildren" },
     },
     visible: {
       opacity: 1,
@@ -59,9 +49,7 @@ const Navbar = () => {
     visible: {
       opacity: 1,
       x: 0,
-      transition: {
-        duration: 0.3,
-      },
+      transition: { duration: 0.3 },
     },
   };
 
@@ -70,173 +58,151 @@ const Navbar = () => {
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="mx-auto  border-b bg-white/80 flex w-full  z-50 justify-center "
+      className="sticky top-0 w-full z-50 border-b bg-background/80 backdrop-blur-md"
     >
-      <div className="w-full  backdrop-blur-md max-w-7xl  mx-auto ">
-        <div className="px-5 md:px-10 lg:max-w-7xl w-full py-4 flex justify-between items-center">
-          <Link href={"/"} className="text-indigo-600 font-bold text-xl">
-            DecentraliFund
+      <div className=" max-w-7xl mx-auto">
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/" className="font-bold text-xl text-primary">
+            Crowdfundify
           </Link>
 
-          {/* Mobile Menu Toggle */}
           <div className="md:hidden">
             <Button
               variant="ghost"
               size="icon"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-foreground"
             >
-              {isMenuOpen ? (
-                <X className="text-indigo-600" />
-              ) : (
-                <Menu className="text-indigo-600" />
-              )}
+              {isMenuOpen ? <X /> : <Menu />}
             </Button>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center">
+          <div className="hidden md:flex items-center gap-6">
             <motion.ul
               variants={menuVariants}
               initial="hidden"
               animate="visible"
-              className="flex gap-5 items-center"
+              className="flex gap-6 items-center"
             >
-              <div className="flex gap-4 px-auto">
-                {links.map((link, index) => (
-                  <motion.li
-                    key={index}
-                    initial={{
-                      opacity: 0,
-                      x: -20,
-                    }}
-                    animate={{
-                      opacity: 1,
-                      x: 0,
-                    }}
-                    transition={{
-                      duration: 0.3,
-                      ease: "linear",
-                      delay: 0.3 * index,
-                    }}
+              {links.map((link, index) => (
+                <motion.li
+                  key={index}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.3, delay: 0.3 * index }}
+                >
+                  <Link
+                    href={link.url}
+                    className="text-muted-foreground hover:text-primary transition-colors"
                   >
+                    {link.label}
+                  </Link>
+                </motion.li>
+              ))}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                    <span className="sr-only">Toggle theme</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setTheme("light")}>
+                    Light
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("dark")}>
+                    Dark
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setTheme("system")}>
+                    System
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {!data?.user ? (
+                <div className="flex gap-2">
+                  <Link href="/signin">
+                    <Button variant="outline" size="sm">
+                      Sign in
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="w-8 h-8 cursor-pointer">
+                      <AvatarImage
+                        src={data.user.image || ""}
+                        alt={data.user.name || ""}
+                      />
+                      <AvatarFallback />
+                    </Avatar>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem asChild>
+                        <Link href="/account">Account</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/campaigns">Projects</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/settings">Settings</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => signOut()}>
+                        Log out
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </motion.ul>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="md:hidden border-t bg-background"
+            >
+              <motion.ul
+                variants={menuVariants}
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                className="flex flex-col p-4 space-y-4"
+              >
+                {links.map((link, index) => (
+                  <motion.li key={index} variants={itemVariants}>
                     <Link
                       href={link.url}
-                      className=" text-gray-700 hover:text-indigo-600 hover:font-semibold transition-colors"
+                      className="block text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
                     >
                       {link.label}
                     </Link>
                   </motion.li>
                 ))}
-              </div>
-
-              <div className="flex gap-2 items-center ml-4">
-                <Link href={"/sign-in"}>
-                  <Button variant={"outline"} size={"sm"}>
-                    Sign in
-                  </Button>
-                </Link>
-                <Link href={"/sign-up"}>
-                  <Button
-                    size={"sm"}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    Sign up
-                  </Button>
-                </Link>
-              </div>
-
-              <div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    {data?.user && (
-                      <Avatar className="w-9 h-9 cursor-pointer">
-                        <AvatarImage
-                          src={data?.user?.image || ""}
-                          alt={data?.user?.name || ""}
-                        />
-                        <AvatarFallback></AvatarFallback>
-                      </Avatar>
-                    )}
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56" align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem>
-                        <Link
-                          href="/account"
-                          className="flex items-center w-full"
-                        >
-                          Account
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Link
-                          href="/projects"
-                          className="flex items-center w-full"
-                        >
-                          Projects
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Link
-                          href="/settings"
-                          className="flex items-center w-full"
-                        >
-                          Settings
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>Log out</DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </motion.ul>
-          </div>
-
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {isMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="md:hidden fixed top-16 left-0 right-0 bg-white shadow-lg"
-              >
-                <motion.ul
-                  variants={menuVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="flex flex-col p-4 space-y-4"
-                >
-                  {["Home", "Projects", "About"].map((item, index) => (
-                    <motion.li key={item} variants={itemVariants}>
-                      <Link
-                        href={"/"}
-                        className="block text-gray-700 hover:text-indigo-600 hover:font-semibold transition-colors"
-                      >
-                        {item}
-                      </Link>
-                    </motion.li>
-                  ))}
-                  <div className="flex flex-col space-y-2 pt-4">
-                    <Link href={"/signin"}>
-                      <Button variant={"outline"} className="w-full">
-                        Sign in
-                      </Button>
-                    </Link>
-                    <Link href={"/signup"}>
-                      <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
-                        Sign up
-                      </Button>
-                    </Link>
-                  </div>
-                </motion.ul>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                <div className="flex flex-col gap-2 pt-4">
+                  <Link href="/sign-in">
+                    <Button variant="outline" className="w-full">
+                      Sign in
+                    </Button>
+                  </Link>
+                  <Link href="/sign-up">
+                    <Button className="w-full">Sign up</Button>
+                  </Link>
+                </div>
+              </motion.ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.nav>
   );

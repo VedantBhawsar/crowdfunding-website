@@ -29,45 +29,40 @@ const CTASection = () => {
   };
 
   return (
-    <section className="relative py-20 ">
-      <section className="container mx-auto px-4">
+    <section className="relative py-16 md:py-20">
+      <div className="container relative z-10">
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          animate="visible"
-          className="text-center max-w-4xl mx-auto relative z-10"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="text-center max-w-4xl mx-auto"
         >
           <motion.h2
             variants={itemVariants}
-            className="text-4xl font-bold mb-6 leading-tight text-gray-900 tracking-tight"
+            className="text-3xl md:text-4xl font-bold mb-6 leading-tight text-foreground tracking-tight"
           >
             Ready to Launch Your Next Big Idea?
           </motion.h2>
 
           <motion.p
             variants={itemVariants}
-            className="text-xl mb-10 text-gray-600 "
+            className="text-lg md:text-xl mb-10 text-muted-foreground"
           >
-            Join thousands of innovators who've transformed their vision into
+            Join thousands of innovators who&apos;ve transformed their vision into
             reality through our platform.
           </motion.p>
 
           <motion.div
             variants={itemVariants}
-            className="flex justify-center space-x-4"
+            className="flex flex-col sm:flex-row justify-center gap-4"
           >
-            <Button
-
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-lg shadow-md hover:shadow-lg transition-all"
-            >
-              <RocketIcon className="mr-0" /> Start Your Campaign
+            <Button size="lg" className="gap-2">
+              <RocketIcon className="w-4 h-4" />
+              Start Your Campaign
             </Button>
-            <Button
-              variant="outline"
-
-              className="border-indigo-600 text-indigo-600 hover:text-indigo-600 hover:bg-indigo-50 px-5 py-3 rounded-lg"
-            >
-              <InfoIcon />
+            <Button size="lg" variant="outline" className="gap-2">
+              <InfoIcon className="w-4 h-4" />
               Learn More
             </Button>
           </motion.div>
@@ -75,7 +70,8 @@ const CTASection = () => {
 
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
           transition={{
             delay: 0.8,
             duration: 0.8,
@@ -84,9 +80,15 @@ const CTASection = () => {
           }}
           className="mt-12 relative"
         >
-          <div className="bg-white/10 w-full h-24 rounded-2xl absolute inset-0 blur-2xl"></div>
+          <div 
+            className="w-full h-full absolute inset-0 rounded-2xl opacity-20"
+            style={{
+              background: "radial-gradient(circle at center, hsl(var(--primary)) 0%, transparent 70%)",
+              filter: "blur(40px)"
+            }}
+          />
         </motion.div>
-      </section>
+      </div>
     </section>
   );
 };

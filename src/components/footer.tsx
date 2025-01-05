@@ -13,35 +13,27 @@ import Link from "next/link";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 
-function Footer() {
-  const socialLinks = [
-    {
-      icon: Twitter,
-      href: "https://twitter.com/crowdfundify",
-      label: "Twitter",
-    },
-    {
-      icon: Facebook,
-      href: "https://facebook.com/crowdfundify",
-      label: "Facebook",
-    },
-    {
-      icon: Instagram,
-      href: "https://instagram.com/crowdfundify",
-      label: "Instagram",
-    },
-    {
-      icon: Linkedin,
-      href: "https://linkedin.com/company/crowdfundify",
-      label: "LinkedIn",
-    },
-    {
-      icon: Github,
-      href: "https://github.com/crowdfundify",
-      label: "GitHub",
-    },
-  ];
+const socialLinks = [
+  { icon: Twitter, href: "https://twitter.com/crowdfundify", label: "Twitter" },
+  {
+    icon: Facebook,
+    href: "https://facebook.com/crowdfundify",
+    label: "Facebook",
+  },
+  {
+    icon: Instagram,
+    href: "https://instagram.com/crowdfundify",
+    label: "Instagram",
+  },
+  {
+    icon: Linkedin,
+    href: "https://linkedin.com/company/crowdfundify",
+    label: "LinkedIn",
+  },
+  { icon: Github, href: "https://github.com/crowdfundify", label: "GitHub" },
+];
 
+function Footer() {
   const animationSettings = {
     whileInView: { opacity: 1, y: 0 },
     initial: { opacity: 0, y: 20 },
@@ -50,151 +42,93 @@ function Footer() {
   };
 
   return (
-    <footer className="bg-white border-t">
-      <div className="mx-auto px-4 py-12 pb-3 max-w-7xl">
-        <motion.div
-          className="grid md:grid-cols-3 gap-8"
-          {...animationSettings}
-        >
-          {/* Brand Section */}
-          <motion.div
-            className="flex flex-col space-y-4"
-            {...animationSettings}
-          >
+    <footer className="border-t bg-background ">
+      <motion.div className="max-w-7xl py-12 pb-3 mx-auto">
+        <div className="grid md:grid-cols-3 gap-8" {...animationSettings}>
+          <div className="flex flex-col space-y-4" {...animationSettings}>
             <div>
-              <h1 className="text-2xl font-bold text-indigo-600">
-                Crowdfundify
-              </h1>
-              <p className="text-sm text-gray-500 mt-2">
-                Empowering dreams through decentralized crowdfunding
+              <h1 className="text-2xl font-bold text-primary">Crowdfundify</h1>
+              <p className="text-base text-muted-foreground mt-2">
+                Empowering dreams through Crowdfundify crowdfunding
               </p>
             </div>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
-                <motion.a
+                <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="text-gray-500 hover:text-indigo-600"
+                  className="text-muted-foreground hover:text-primary transition-colors"
                   aria-label={social.label}
-                  {...animationSettings}
                 >
                   <social.icon size={20} />
-                </motion.a>
+                </a>
               ))}
             </div>
-          </motion.div>
+          </div>
 
-          {/* Quick Links */}
-          <motion.div className="grid grid-cols-2 gap-4" {...animationSettings}>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+              <h3 className="text-base font-semibold text-foreground mb-4">
                 Platform
               </h3>
               <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/projects"
-                    className="text-sm text-gray-500 hover:text-indigo-600"
-                  >
-                    Browse Projects
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/launch"
-                    className="text-sm text-gray-500 hover:text-indigo-600"
-                  >
-                    Launch Campaign
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/how-it-works"
-                    className="text-sm text-gray-500 hover:text-indigo-600"
-                  >
-                    How It Works
-                  </Link>
-                </li>
+                {["Browse Projects", "Launch Campaign", "How It Works"].map(
+                  (item) => (
+                    <li key={item}>
+                      <Link
+                        href={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
+                        className="text-base text-muted-foreground hover:text-primary transition-colors "
+                      >
+                        {item}
+                      </Link>
+                    </li>
+                  )
+                )}
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-4">
+              <h3 className="text-base font-semibold text-foreground mb-4">
                 Company
               </h3>
               <ul className="space-y-2">
-                <li>
-                  <Link
-                    href="/about"
-                    className="text-sm text-gray-500 hover:text-indigo-600"
-                  >
-                    About Us
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/contact"
-                    className="text-sm text-gray-500 hover:text-indigo-600"
-                  >
-                    Contact
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/careers"
-                    className="text-sm text-gray-500 hover:text-indigo-600"
-                  >
-                    Careers
-                  </Link>
-                </li>
+                {["About Us", "Contact", "Careers"].map((item) => (
+                  <li key={item}>
+                    <Link
+                      href={`/${item.toLowerCase().replace(/\s+/g, "")}`}
+                      className="text-base text-muted-foreground hover:text-primary transition-colors"
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Newsletter / Contact */}
-          <motion.div {...animationSettings}>
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">
+          <div>
+            <h3 className="text-base font-semibold text-foreground mb-4">
               Stay Updated
             </h3>
-            <motion.div
-              className="flex flex-col space-y-4"
-              {...animationSettings}
-            >
-              <motion.div
-                className="flex items-center bg-gray-50 rounded-lg "
-                {...animationSettings}
-              >
-                <Input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="bg-transparent w-full text-sm focus:outline-none"
-                />
-              </motion.div>
-              <Button
-                className="w-full bg-indigo-600 text-white py-2 rounded-lg text-sm hover:bg-indigo-700 transition-colors"
-
-              >
-                <Mail/>
+            <div className="flex flex-col space-y-4">
+              <Input
+                type="email"
+                placeholder="Enter your email"
+                className="bg-background"
+              />
+              <Button>
+                <Mail className="mr-2 h-4 w-4" />
                 Subscribe
               </Button>
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </div>
+          </div>
+        </div>
 
-        {/* Copyright */}
-        <motion.div
-          className="text-center text-sm text-gray-500 mt-8 pt-4 border-t"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 1.5 }}
-          viewport={{ once: true }}
-        >
+        <div className="text-center text-lg text-muted-foreground mt-8 pt-4 border-t">
           &copy; {new Date().getFullYear()} Crowdfundify. All rights reserved.
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </footer>
   );
 }

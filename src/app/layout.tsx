@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import Providers from "@/components/providers";
+import WalletProvider from "@/context/walletContext";
+import { headers } from "next/headers";
 
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
@@ -15,29 +17,22 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "Crowdfunding website",
   description: "This is a crowdfunding website",
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
-  ],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headersObj = await headers();
+  const cookies = headersObj.get("cookie");
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} font-sans antialiased`}>
-        <Providers>
-          <div className="min-h-screen flex flex-col ">
-            <Navbar />
-            <main className="flex-grow container mx-auto px-0 md:px-6 py-4 md:py-8">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </Providers>
+        <WalletProvider cookies={cookies}>
+          <Providers>{children}</Providers>
+        </WalletProvider>
       </body>
     </html>
   );

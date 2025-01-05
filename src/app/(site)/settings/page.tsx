@@ -23,7 +23,6 @@ export default function SettingsPage() {
   };
 
   const handleSave = () => {
-    console.log("Updated Profile Data:", profileData);
     alert("Profile updated successfully!");
   };
 
