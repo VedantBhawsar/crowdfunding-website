@@ -1,20 +1,18 @@
-"use client";
-import { Clock, DollarSign, Heart, Share2, Users } from "lucide-react";
-import { Button } from "../ui/button";
-import { Card, CardContent } from "../ui/card";
-import { Progress } from "../ui/progress";
-import { motion } from "framer-motion";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+'use client';
+import { Clock, DollarSign, Heart, Share2, Users } from 'lucide-react';
+import { Button } from '../ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Progress } from '../ui/progress';
+import { motion } from 'framer-motion';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
-const CampaignHeader = ({ campaign }: any) => {
-  const progress = (campaign.raisedAmount / campaign.goalAmount) * 100;
+const CampaignHeader = ({ campaign }: { campaign: any }) => {
+  const progress = (campaign.raisedAmount / campaign.goal) * 100;
 
   return (
     <div className="space-y-6">
       <div>
-        <span className="text-sm font-medium text-primary">
-          {campaign.category}
-        </span>
+        <span className="text-sm font-medium text-primary">{campaign.category}</span>
         <h1 className="text-3xl font-bold mt-2">{campaign.title}</h1>
       </div>
 
@@ -22,12 +20,8 @@ const CampaignHeader = ({ campaign }: any) => {
         <CardContent className="pt-3 space-y-4">
           <div>
             <div className="flex justify-between mb-2">
-              <span className="font-bold text-2xl">
-                ${campaign.raisedAmount.toLocaleString()}
-              </span>
-              <span className="text-gray-500">
-                of ${campaign.goalAmount.toLocaleString()}
-              </span>
+              <span className="font-bold text-2xl">${campaign.raisedAmount.toLocaleString()}</span>
+              <span className="text-gray-500">of ${campaign.goal.toLocaleString()}</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>

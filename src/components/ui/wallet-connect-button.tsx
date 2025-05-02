@@ -1,22 +1,14 @@
 // components/WalletConnectButton.tsx
-"use client";
-import { Button } from "./button";
-import { cn } from "@/lib/utils";
-import { Wallet } from "lucide-react";
+'use client';
+// Use the AppKit button directly, which handles connection logic via the modal
+// configured in src/context/walletContext.tsx
 
-export default function WalletConnectButton({
-  className,
-}: {
-  className: string;
-}) {
-  function handleClick() {}
+// Note: The className prop might not be directly applicable to <appkit-button />.
+// Styling is typically handled through AppKit's theming or custom CSS targeting the element.
+// We'll keep the component structure simple for now.
 
+export default function WalletConnectButton() {
+  // The <appkit-button /> element provided by @reown/appkit handles
+  // opening the connection modal and displaying connection state.
   return <appkit-button />;
-
-  return (
-    <Button onClick={handleClick} className={cn(className)}>
-      <Wallet className="w-6 h-6 mr-2" />
-      Connect Wallet
-    </Button>
-  );
 }

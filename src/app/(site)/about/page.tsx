@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Separator } from "@/components/ui/separator";
-import { motion } from "framer-motion";
+import React from 'react';
+import { Separator } from '@/components/ui/separator';
+import { motion } from 'framer-motion';
 
 export default function AboutPage() {
   const containerAnimation = {
@@ -12,9 +12,9 @@ export default function AboutPage() {
       y: 0,
       transition: {
         duration: 0.6,
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const itemAnimation = {
@@ -22,8 +22,8 @@ export default function AboutPage() {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6 }
-    }
+      transition: { duration: 0.6 },
+    },
   };
 
   return (
@@ -36,42 +36,32 @@ export default function AboutPage() {
           className="space-y-16"
         >
           <motion.div variants={itemAnimation} className="text-center space-y-4">
-            <h1 className="text-3xl font-bold text-primary">
-              About DecentraliFund
-            </h1>
+            <h1 className="text-3xl font-bold text-primary">About DecentraliFund</h1>
             <div className="h-1 w-20 bg-primary/20 mx-auto rounded-full" />
           </motion.div>
 
           <motion.section variants={itemAnimation} className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">
-              Our Mission
-            </h2>
+            <h2 className="text-2xl font-semibold text-foreground">Our Mission</h2>
             <p className="text-muted-foreground leading-relaxed">
-              At DecentraliFund, our mission is to empower individuals and
-              communities by providing a secure, transparent, and Crowdfundify
-              platform to fund projects that make a positive impact in the
-              world. We believe in creating opportunities for everyone to
-              achieve their dreams.
+              At DecentraliFund, our mission is to empower individuals and communities by providing
+              a secure, transparent, and Crowdfundify platform to fund projects that make a positive
+              impact in the world. We believe in creating opportunities for everyone to achieve
+              their dreams.
             </p>
           </motion.section>
 
           <motion.section variants={itemAnimation} className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">
-              Our Vision
-            </h2>
+            <h2 className="text-2xl font-semibold text-foreground">Our Vision</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Our vision is to become the leading Crowdfundify crowdfunding
-              platform, enabling global participation in creating innovative
-              solutions for pressing societal challenges. We aim to bridge the
-              gap between dreamers and supporters by leveraging blockchain
-              technology for transparency and trust.
+              Our vision is to become the leading Crowdfundify crowdfunding platform, enabling
+              global participation in creating innovative solutions for pressing societal
+              challenges. We aim to bridge the gap between dreamers and supporters by leveraging
+              blockchain technology for transparency and trust.
             </p>
           </motion.section>
 
           <motion.section variants={itemAnimation} className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">
-              Why Choose Us?
-            </h2>
+            <h2 className="text-2xl font-semibold text-foreground">Why Choose Us?</h2>
             <ul className="grid gap-3 text-muted-foreground">
               <li className="flex items-center">
                 <span className="h-1.5 w-1.5 rounded-full bg-primary mr-3" />
@@ -97,22 +87,18 @@ export default function AboutPage() {
           </motion.section>
 
           <motion.section variants={itemAnimation} className="space-y-4">
-            <h2 className="text-2xl font-semibold text-foreground">
-              Meet Our Team
-            </h2>
+            <h2 className="text-2xl font-semibold text-foreground">Meet Our Team</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Our team is made up of passionate individuals dedicated to
-              transforming the crowdfunding landscape. From blockchain experts
-              to community builders, we work tirelessly to ensure every campaign
-              on our platform is successful and impactful.
+              Our team is made up of passionate individuals dedicated to transforming the
+              crowdfunding landscape. From blockchain experts to community builders, we work
+              tirelessly to ensure every campaign on our platform is successful and impactful.
             </p>
           </motion.section>
 
           <motion.div variants={itemAnimation}>
             <Separator className="my-8" />
             <p className="text-center text-muted-foreground">
-              Thank you for choosing DecentraliFund to make a difference in the
-              world.
+              Thank you for choosing DecentraliFund to make a difference in the world.
             </p>
           </motion.div>
         </motion.div>

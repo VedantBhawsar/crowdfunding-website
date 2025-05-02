@@ -1,11 +1,13 @@
-import { AnimatePresence, motion } from "framer-motion";
-
+import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 export function HeaderText({
   title,
   description,
+  className,
 }: {
   title: string;
   description: string;
+  className?: string;
 }) {
   const itemVariants = {
     hidden: { y: 20, opacity: 0 },
@@ -14,14 +16,14 @@ export function HeaderText({
       opacity: 1,
       transition: {
         duration: 0.7,
-        ease: "easeOut",
+        ease: 'easeOut',
       },
     },
   };
 
   return (
     <AnimatePresence>
-      <motion.div className="text-center mb-10">
+      <motion.div className={cn('text-center mb-10', className)}>
         <motion.h2
           variants={itemVariants}
           className="text-4xl font-bold text-primary tracking-wide mb-2"

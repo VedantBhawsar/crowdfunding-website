@@ -1,22 +1,22 @@
-"use client";
-import { motion } from "framer-motion";
-import { LockIcon, CheckCircle2Icon } from "lucide-react";
-import { HeaderText } from "../ui/headerText";
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+'use client';
+import { motion } from 'framer-motion';
+import { LockIcon, CheckCircle2Icon } from 'lucide-react';
+import { HeaderText } from '../ui/headerText';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export default function SecuritySection() {
   const securityFeatures = [
     {
       icon: LockIcon,
-      title: "End-to-end Encryption",
+      title: 'End-to-end Encryption',
       description:
-        "Each transaction and user data point is safeguarded with the highest level of security, employing military-grade encryption standards.",
+        'Each transaction and user data point is safeguarded with the highest level of security, employing military-grade encryption standards.',
     },
     {
       icon: CheckCircle2Icon,
-      title: "Crowdfundify Verification",
+      title: 'Crowdfundify Verification',
       description:
-        "Blockchain technology delivers unparalleled transparency, ensuring records that are immutable, secure, and tamper-proof.",
+        'Blockchain technology delivers unparalleled transparency, ensuring records that are immutable, secure, and tamper-proof.',
     },
   ];
 
@@ -50,9 +50,7 @@ export default function SecuritySection() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-foreground cursor-default">
-                    {feature.description}
-                  </p>
+                  <p className="text-foreground cursor-default">{feature.description}</p>
                 </CardContent>
               </Card>
             </motion.div>

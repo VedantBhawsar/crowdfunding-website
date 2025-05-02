@@ -1,8 +1,8 @@
-"use client";
-import Link from "next/link";
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "./ui/button";
+'use client';
+import Link from 'next/link';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from './ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,28 +11,25 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Menu, Moon, Sun, X } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { signOut, useSession } from "next-auth/react";
-import { useTheme } from "next-themes";
+} from '@/components/ui/dropdown-menu';
+import { Menu, Moon, Sun, X } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { signOut, useSession } from 'next-auth/react';
+import { useTheme } from 'next-themes';
+import { Skeleton } from './ui/skeleton';
 
-const links = [
-  { label: "Home", url: "/" },
-  { label: "Projects", url: "/projects" },
-  { label: "About", url: "/about" },
-];
+const links = [{ label: 'Campaigns', url: '/campaigns' }];
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { data } = useSession();
+  const { data, status } = useSession();
   const { setTheme } = useTheme();
 
   const menuVariants = {
     hidden: {
       opacity: 0,
       y: -20,
-      transition: { when: "afterChildren" },
+      transition: { when: 'afterChildren' },
     },
     visible: {
       opacity: 1,
@@ -54,12 +51,7 @@ const Navbar = () => {
   };
 
   return (
-    <motion.nav
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="sticky top-0 w-full z-50 border-b bg-background/80 backdrop-blur-md"
-    >
+    <nav className="sticky top-0 w-full z-50 border-b bg-background/80 backdrop-blur-md">
       <div className=" max-w-7xl mx-auto">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="font-bold text-xl text-primary">
@@ -78,18 +70,11 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-6">
-            <motion.ul
-              variants={menuVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex gap-6 items-center"
-            >
+            <ul className="flex gap-6 items-center">
               {links.map((link, index) => (
-                <motion.li
+                <li
                   key={index}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.3, delay: 0.3 * index }}
+                  className="text-muted-foreground hover:text-primary transition-colors"
                 >
                   <Link
                     href={link.url}
@@ -97,69 +82,38 @@ const Navbar = () => {
                   >
                     {link.label}
                   </Link>
-                </motion.li>
+                </li>
               ))}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                    <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                    <span className="sr-only">Toggle theme</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setTheme("light")}>
-                    Light
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    Dark
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme("system")}>
-                    System
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
 
-              {!data?.user ? (
+              {status === 'loading' ? (
                 <div className="flex gap-2">
-                  <Link href="/signin">
-                    <Button variant="outline" size="sm">
-                      Sign in
-                    </Button>
-                  </Link>
+                  <Skeleton className="w-12 h-8" />
+                </div>
+              ) : status !== 'authenticated' ? (
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    Sign in
+                  </Button>
                 </div>
               ) : (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="w-8 h-8 cursor-pointer">
-                      <AvatarImage
-                        src={data.user.image || ""}
-                        alt={data.user.name || ""}
-                      />
+                      <AvatarImage src={data?.user?.image || ''} alt={data?.user?.name || ''} />
                       <AvatarFallback />
                     </Avatar>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
                     <DropdownMenuGroup>
                       <DropdownMenuItem asChild>
                         <Link href="/account">Account</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/campaigns">Projects</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/settings">Settings</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => signOut()}>
-                        Log out
-                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => signOut()}>Log out</DropdownMenuItem>
                     </DropdownMenuGroup>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-            </motion.ul>
+            </ul>
           </div>
         </div>
 
@@ -204,7 +158,7 @@ const Navbar = () => {
           )}
         </AnimatePresence>
       </div>
-    </motion.nav>
+    </nav>
   );
 };
 

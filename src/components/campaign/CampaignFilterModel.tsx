@@ -1,234 +1,207 @@
-import React, { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronDown, X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import React, { useState, useEffect } from 'react';
+import { CampaignStatus } from '@prisma/client'; // Import enums
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
+import { Settings2, X } from 'lucide-react';
 
-const FilterButton = ({ 
-  label, 
-  isActive, 
-  children 
-}: { 
-  label: string; 
-  isActive: boolean; 
-  children: React.ReactNode;
-}) => (
-  <Popover>
-    <PopoverTrigger asChild>
-      <Button 
-        variant={isActive ? "secondary" : "outline"} 
-        className="h-9 gap-2 px-3"
-      >
-        {label}
-        <ChevronDown className="h-4 w-4" />
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent className="w-[240px] p-3" align="start">
-      {children}
-    </PopoverContent>
-  </Popover>
-);
+// Define available categories (consider fetching these if dynamic)
+const AVAILABLE_CATEGORIES = [
+  'Technology',
+  'Art',
+  'Music',
+  'Film',
+  'Games',
+  'Food',
+  'Publishing',
+  'Fashion',
+  'Design',
+  'Community',
+  'Education',
+  'Environment',
+  'Health',
+  'Nonprofit',
+  'Social Enterprise',
+];
 
-const CampaignFilterModel = () => {
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [sortBy, setSortBy] = useState("recent");
-  const [timeFrame, setTimeFrame] = useState("all");
-  const [campaignStatus, setCampaignStatus] = useState("all");
-  const [fundingProgress, setFundingProgress] = useState("all");
+// Define available statuses
+const AVAILABLE_STATUSES = Object.values(CampaignStatus);
 
-  const categories = [
-    "Education", "Environment", "Health", "Community",
-    "Arts & Culture", "Technology", "Social Justice", "Animal Welfare"
-  ];
+// Define sort options
+const SORT_OPTIONS = [
+  { value: 'createdAt_desc', label: 'Newest' },
+  { value: 'createdAt_asc', label: 'Oldest' },
+  { value: 'goal_asc', label: 'Goal (Low to High)' },
+  { value: 'goal_desc', label: 'Goal (High to Low)' },
+  { value: 'raisedAmount_desc', label: 'Most Funded' },
+  // Add more like 'ending_soon' if implemented in API
+];
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+// Type for the filter state
+export interface FilterState {
+  categories: string[];
+  statuses: CampaignStatus[];
+  sortBy: string;
+}
+
+interface CampaignFilterModelProps {
+  currentFilters: FilterState;
+  onApplyFilters: (filters: FilterState) => void;
+}
+
+const CampaignFilterModel: React.FC<CampaignFilterModelProps> = ({
+  currentFilters,
+  onApplyFilters,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories);
+  const [selectedStatuses, setSelectedStatuses] = useState<CampaignStatus[]>(
+    currentFilters.statuses
+  );
+  const [sortBy, setSortBy] = useState<string>(currentFilters.sortBy);
+
+  // Reset local state when currentFilters prop changes (e.g., if cleared externally)
+  useEffect(() => {
+    setSelectedCategories(currentFilters.categories);
+    setSelectedStatuses(currentFilters.statuses);
+    setSortBy(currentFilters.sortBy);
+  }, [currentFilters]);
+
+  const handleCategoryChange = (category: string, checked: boolean | 'indeterminate') => {
+    setSelectedCategories(prev =>
+      checked ? [...prev, category] : prev.filter(c => c !== category)
     );
   };
 
-  const resetFilters = () => {
-    setSelectedCategories([]);
-    setSortBy("recent");
-    setTimeFrame("all");
-    setCampaignStatus("all");
-    setFundingProgress("all");
+  const handleStatusChange = (status: CampaignStatus, checked: boolean | 'indeterminate') => {
+    setSelectedStatuses(prev => (checked ? [...prev, status] : prev.filter(s => s !== status)));
   };
 
-  const hasActiveFilters = selectedCategories.length > 0 || 
-    sortBy !== "recent" || 
-    timeFrame !== "all" || 
-    campaignStatus !== "all" || 
-    fundingProgress !== "all";
+  const handleApply = () => {
+    onApplyFilters({
+      categories: selectedCategories,
+      statuses: selectedStatuses,
+      sortBy: sortBy,
+    });
+    setIsOpen(false); // Close dialog on apply
+  };
+
+  const handleClear = () => {
+    // Reset local state to defaults
+    setSelectedCategories([]);
+    setSelectedStatuses([CampaignStatus.ACTIVE]); // Default to active
+    setSortBy('createdAt_desc');
+    // Apply the cleared filters immediately
+    onApplyFilters({
+      categories: [],
+      statuses: [CampaignStatus.ACTIVE],
+      sortBy: 'createdAt_desc',
+    });
+    setIsOpen(false);
+  };
 
   return (
-    <div className="w-full ">
-      <div className="flex flex-wrap items-center gap-2">
-        {/* Sort Filter */}
-        <FilterButton 
-          label="Sort" 
-          isActive={sortBy !== "recent"}
-        >
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="recent">Most Recent</SelectItem>
-              <SelectItem value="popular">Most Popular</SelectItem>
-              <SelectItem value="funded">Most Funded</SelectItem>
-              <SelectItem value="ending">Ending Soon</SelectItem>
-            </SelectContent>
-          </Select>
-        </FilterButton>
-
-        {/* Time Frame Filter */}
-        <FilterButton 
-          label="Time" 
-          isActive={timeFrame !== "all"}
-        >
-          <RadioGroup value={timeFrame} onValueChange={setTimeFrame} className="space-y-2">
-            {[
-              { value: "all", label: "All Time" },
-              { value: "today", label: "Today" },
-              { value: "week", label: "This Week" },
-              { value: "month", label: "This Month" }
-            ].map(({ value, label }) => (
-              <div key={value} className="flex items-center">
-                <RadioGroupItem value={value} id={`time-${value}`} />
-                <Label htmlFor={`time-${value}`} className="ml-2 text-sm">
-                  {label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </FilterButton>
-
-        {/* Status Filter */}
-        <FilterButton 
-          label="Status" 
-          isActive={campaignStatus !== "all"}
-        >
-          <RadioGroup value={campaignStatus} onValueChange={setCampaignStatus} className="space-y-2">
-            {[
-              { value: "all", label: "All Campaigns" },
-              { value: "active", label: "Active" },
-              { value: "ending", label: "Ending Soon" },
-              { value: "completed", label: "Completed" }
-            ].map(({ value, label }) => (
-              <div key={value} className="flex items-center">
-                <RadioGroupItem value={value} id={`status-${value}`} />
-                <Label htmlFor={`status-${value}`} className="ml-2 text-sm">
-                  {label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </FilterButton>
-
-        {/* Progress Filter */}
-        <FilterButton 
-          label="Progress" 
-          isActive={fundingProgress !== "all"}
-        >
-          <RadioGroup value={fundingProgress} onValueChange={setFundingProgress} className="space-y-2">
-            {[
-              { value: "all", label: "All" },
-              { value: "75plus", label: "75%+ Funded" },
-              { value: "50plus", label: "50%+ Funded" },
-              { value: "25plus", label: "25%+ Funded" }
-            ].map(({ value, label }) => (
-              <div key={value} className="flex items-center">
-                <RadioGroupItem value={value} id={`funding-${value}`} />
-                <Label htmlFor={`funding-${value}`} className="ml-2 text-sm">
-                  {label}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </FilterButton>
-
-        {/* Categories Filter */}
-        <FilterButton 
-          label="Categories" 
-          isActive={selectedCategories.length > 0}
-        >
-          <div className="space-y-2">
-            {categories.map((category) => (
-              <div key={category} className="flex items-center">
-                <Checkbox
-                  id={category}
-                  checked={selectedCategories.includes(category)}
-                  onCheckedChange={() => toggleCategory(category)}
-                />
-                <label htmlFor={category} className="ml-2 text-sm">
-                  {category}
-                </label>
-              </div>
-            ))}
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="flex-shrink-0">
+          <Settings2 className="mr-2 h-4 w-4" />
+          Filters
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle>Filter & Sort Campaigns</DialogTitle>
+          <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <X className="h-4 w-4" />
+            <span className="sr-only">Close</span>
+          </DialogClose>
+        </DialogHeader>
+        <div className="py-4 grid gap-6 max-h-[60vh] overflow-y-auto pr-2">
+          {' '}
+          {/* Added scroll */}
+          {/* Categories */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Categories</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {AVAILABLE_CATEGORIES.map(category => (
+                <div key={category} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`category-${category}`}
+                    checked={selectedCategories.includes(category)}
+                    onCheckedChange={checked => handleCategoryChange(category, checked)}
+                  />
+                  <Label
+                    htmlFor={`category-${category}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {category}
+                  </Label>
+                </div>
+              ))}
+            </div>
           </div>
-        </FilterButton>
-
-        {/* Active Filters */}
-        {hasActiveFilters && (
-          <Button 
-            variant="ghost" 
-            onClick={resetFilters}
-            className="h-9 px-3 text-muted-foreground"
-          >
-            Reset
-            <X className="ml-2 h-4 w-4" />
-          </Button>
-        )}
-      </div>
-
-      {/* Active Filter Tags */}
-      {hasActiveFilters && (
-        <div className="flex flex-wrap gap-2 mt-3">
-          {selectedCategories.map((category) => (
-            <Badge 
-              key={category}
-              variant="secondary" 
-              className="text-xs"
-              onClick={() => toggleCategory(category)}
-            >
-              {category}
-              <X className="ml-1 h-3 w-3" />
-            </Badge>
-          ))}
-          {sortBy !== "recent" && (
-            <Badge variant="secondary" className="text-xs">
-              Sort: {sortBy}
-              <X className="ml-1 h-3 w-3" onClick={() => setSortBy("recent")} />
-            </Badge>
-          )}
-          {timeFrame !== "all" && (
-            <Badge variant="secondary" className="text-xs">
-              Time: {timeFrame}
-              <X className="ml-1 h-3 w-3" onClick={() => setTimeFrame("all")} />
-            </Badge>
-          )}
-          {campaignStatus !== "all" && (
-            <Badge variant="secondary" className="text-xs">
-              Status: {campaignStatus}
-              <X className="ml-1 h-3 w-3" onClick={() => setCampaignStatus("all")} />
-            </Badge>
-          )}
-          {fundingProgress !== "all" && (
-            <Badge variant="secondary" className="text-xs">
-              Progress: {fundingProgress}
-              <X className="ml-1 h-3 w-3" onClick={() => setFundingProgress("all")} />
-            </Badge>
-          )}
+          <Separator />
+          {/* Statuses */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Status</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+              {AVAILABLE_STATUSES.map(status => (
+                <div key={status} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`status-${status}`}
+                    checked={selectedStatuses.includes(status)}
+                    onCheckedChange={checked => handleStatusChange(status, checked)}
+                  />
+                  <Label
+                    htmlFor={`status-${status}`}
+                    className="text-sm font-normal cursor-pointer capitalize"
+                  >
+                    {status.toLowerCase().replace('_', ' ')}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          <Separator />
+          {/* Sorting */}
+          <div>
+            <h3 className="text-sm font-medium mb-2">Sort By</h3>
+            <RadioGroup value={sortBy} onValueChange={setSortBy}>
+              {SORT_OPTIONS.map(option => (
+                <div key={option.value} className="flex items-center space-x-2">
+                  <RadioGroupItem value={option.value} id={`sort-${option.value}`} />
+                  <Label
+                    htmlFor={`sort-${option.value}`}
+                    className="text-sm font-normal cursor-pointer"
+                  >
+                    {option.label}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
         </div>
-      )}
-    </div>
+        <DialogFooter className="mt-4 pt-4 border-t">
+          <Button type="button" variant="outline" onClick={handleClear}>
+            Clear Filters
+          </Button>
+          <Button type="button" onClick={handleApply}>
+            Apply Filters
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

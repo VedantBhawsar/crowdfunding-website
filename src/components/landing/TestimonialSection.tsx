@@ -1,25 +1,25 @@
-"use client";
-import { motion } from "framer-motion";
-import { Card, CardContent } from "../ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { HeaderText } from "../ui/headerText";
+'use client';
+import { motion } from 'framer-motion';
+import { Card, CardContent } from '../ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { HeaderText } from '../ui/headerText';
 
 export const TestimonialSection = () => {
   const testimonials = [
     {
-      name: "Sarah Johnson",
-      project: "Green Tech Startup",
+      name: 'Sarah Johnson',
+      project: 'Green Tech Startup',
       quote:
-        "Our sustainable energy project went from concept to reality thanks to this incredible platform!",
+        'Our sustainable energy project went from concept to reality thanks to this incredible platform!',
       image:
-        "https://plus.unsplash.com/premium_photo-1661768742069-4de270a8d9fa?q=80&w=2072&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        'https://plus.unsplash.com/premium_photo-1661768742069-4de270a8d9fa?q=80&w=2072&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     },
     {
-      name: "Nehali jaiswal",
-      project: "Community Art Initiative",
+      name: 'Nehali jaiswal',
+      project: 'Community Art Initiative',
       quote:
-        "Blockchain crowdfunding made it easy to connect with supporters who believe in our vision.",
-      image: "/nehali.jpg",
+        'Blockchain crowdfunding made it easy to connect with supporters who believe in our vision.',
+      image: '/nehali.jpg',
     },
   ];
 
@@ -42,7 +42,7 @@ export const TestimonialSection = () => {
               <Card className="h-full">
                 <CardContent className="p-6 space-y-6">
                   <p className="text-lg md:text-xl italic text-muted-foreground">
-                  &quot;{testimonial.quote}&quot;
+                    &quot;{testimonial.quote}&quot;
                   </p>
                   <div className="flex items-center space-x-3">
                     <img
@@ -51,12 +51,8 @@ export const TestimonialSection = () => {
                       alt={testimonial.name}
                     />
                     <div className="space-y-1">
-                      <h3 className="font-semibold text-foreground">
-                        {testimonial.name}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {testimonial.project}
-                      </p>
+                      <h3 className="font-semibold text-foreground">{testimonial.name}</h3>
+                      <p className="text-sm text-muted-foreground">{testimonial.project}</p>
                     </div>
                   </div>
                 </CardContent>

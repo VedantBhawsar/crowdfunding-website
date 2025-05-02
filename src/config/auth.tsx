@@ -1,8 +1,8 @@
-import { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import GithubProvider from "next-auth/providers/github";
-import GoogleProvider from "next-auth/providers/google";
-import prismaClient from "@/lib/prismadb";
+import { NextAuthOptions } from 'next-auth';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import GithubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
+import prismaClient from '@/lib/prismadb';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prismaClient),
@@ -29,17 +29,18 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.userId = user.id;
         token.onboarded = user.onboarded;
+        token.role = user.role;
       }
       return token;
     },
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 60 * 60 * 24,
   },
 
   pages: {
-    signIn: "/signin",
-    error: "/error",
+    signIn: '/signin',
+    error: '/error',
   },
 };

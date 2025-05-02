@@ -1,111 +1,84 @@
-"use client";
-import React from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { RocketIcon, WalletIcon } from "lucide-react";
-import { useTheme } from "next-themes";
-import { useSession } from "next-auth/react";
+'use client';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { RocketIcon, WalletIcon } from 'lucide-react';
 
 const HeroSection = () => {
-  const containerVariants = {
+  const sectionVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        delayChildren: 0.3,
+        delayChildren: 0.2,
         staggerChildren: 0.2,
       },
     },
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
+  const fadeInUpVariants = {
+    hidden: { y: 30, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
       transition: {
-        duration: 0.7,
-        ease: "easeOut",
+        duration: 0.6,
+        ease: 'easeOut',
       },
     },
   };
 
   return (
-    <div className="relative py-8 md:py-16 lg:py-24 lg:pt-10">
-      <div className="container px-4 mx-auto relative">
+    <div className="relative overflow-hidden py-20 md:py-28 lg:py-36">
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 grid grid-cols-2 -space-x-52 opacity-40 dark:opacity-20 pointer-events-none"
+      >
+        <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-400 dark:from-blue-700"></div>
+        <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-400 to-sky-300 dark:to-indigo-600"></div>
+      </div>
+      <div className="container px-4 mx-auto relative z-10">
         <motion.div
-          variants={containerVariants}
+          variants={sectionVariants}
           initial="hidden"
           animate="visible"
-          className="text-center max-w-4xl mx-auto relative"
+          className="text-center max-w-4xl mx-auto"
         >
           <motion.h1
-            variants={itemVariants}
-            className="text-3xl tracking-wider md:text-4xl lg:text-5xl font-bold text-primary mb-4 md:mb-6 leading-tight"
+            variants={fadeInUpVariants}
+            className="text-4xl tracking-tight md:text-5xl lg:text-6xl font-bold text-foreground mb-6 md:mb-8 leading-tight"
           >
-            Empower Your Ideas with Crowdfundify Crowdfunding
+            Empower Your Ideas with <span className="text-primary">Crowdfundify</span>
           </motion.h1>
 
           <motion.p
-            variants={itemVariants}
-            className="text-lg font-semibold tracking-wide text-muted-foreground mb-6 md:mb-10 max-w-3xl mx-auto"
+            variants={fadeInUpVariants}
+            className="text-lg md:text-xl font-medium text-muted-foreground mb-10 md:mb-12 max-w-3xl mx-auto"
           >
-            Launch innovative projects, support groundbreaking ideas, and
-            transform the future of funding with cutting-edge blockchain
-            technology
+            Launch innovative projects, support groundbreaking ideas, and transform funding with
+            secure blockchain technology.
           </motion.p>
 
           <motion.div
-            variants={itemVariants}
-            className="flex flex-col sm:flex-row justify-center gap-2 sm:space-x-4"
+            variants={fadeInUpVariants}
+            className="flex flex-col sm:flex-row justify-center items-center gap-4"
           >
-            <Button size="lg" variant={"default"} className="w-full sm:w-auto">
-              <RocketIcon className="h-4 w-4" /> Launch Campaign
+            <Button
+              size="lg"
+              className="w-full sm:w-auto transition-transform duration-200 hover:scale-105"
+            >
+              <RocketIcon className="h-5 w-5 mr-2" /> Launch Campaign
             </Button>
-            <Button variant="outline" size="lg" className="w-full sm:w-auto">
-              <WalletIcon className="h-4 w-4" /> Create Account
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto transition-transform duration-200 hover:scale-105"
+            >
+              <WalletIcon className="h-5 w-5 mr-2" /> Explore Projects
             </Button>
           </motion.div>
         </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{
-            delay: 0.8,
-            duration: 0.8,
-            type: "spring",
-            stiffness: 50,
-          }}
-          className="mt-8 md:mt-16 relative"
-        >
-          <Card className="relative bg-background/80 w-1/2 mx-auto  backdrop-blur-md border-primary/20 shadow-lg shadow-primary/10 rounded-lg ">
-            <CardContent className=" p-0">
-              <div className="grid grid-cols-1 sm:grid-cols-3 text-center">
-                <div className="border-r-2 py-5">
-                  <h3 className="text-2xl md:text-3xl font-bold text-primary">
-                    $4.2M
-                  </h3>
-                  <p className="text-muted-foreground font">Total Funded</p>
-                </div>
-                <div className="border-r-2 py-5">
-                  <h3 className="text-2xl md:text-3xl font-bold text-primary">
-                    342
-                  </h3>
-                  <p className="text-muted-foreground">Active Projects</p>
-                </div>
-                <div className=" py-5">
-                  <h3 className="text-2xl md:text-3xl font-bold text-primary">
-                    1,247
-                  </h3>
-                  <p className="text-muted-foreground">Backers</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+      </div>{' '}
     </div>
   );
 };

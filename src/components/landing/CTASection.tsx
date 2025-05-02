@@ -1,8 +1,8 @@
-"use client";
-import React from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { RocketIcon, InfoIcon } from "lucide-react";
+'use client';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { RocketIcon, InfoIcon } from 'lucide-react';
 
 const CTASection = () => {
   const containerVariants = {
@@ -23,7 +23,7 @@ const CTASection = () => {
       opacity: 1,
       transition: {
         duration: 0.7,
-        ease: "easeOut",
+        ease: 'easeOut',
       },
     },
   };
@@ -49,8 +49,8 @@ const CTASection = () => {
             variants={itemVariants}
             className="text-lg md:text-xl mb-10 text-muted-foreground"
           >
-            Join thousands of innovators who&apos;ve transformed their vision into
-            reality through our platform.
+            Join thousands of innovators who&apos;ve transformed their vision into reality through
+            our platform.
           </motion.p>
 
           <motion.div
@@ -75,16 +75,17 @@ const CTASection = () => {
           transition={{
             delay: 0.8,
             duration: 0.8,
-            type: "spring",
+            type: 'spring',
             stiffness: 50,
           }}
           className="mt-12 relative"
         >
-          <div 
+          <div
             className="w-full h-full absolute inset-0 rounded-2xl opacity-20"
             style={{
-              background: "radial-gradient(circle at center, hsl(var(--primary)) 0%, transparent 70%)",
-              filter: "blur(40px)"
+              background:
+                'radial-gradient(circle at center, hsl(var(--primary)) 0%, transparent 70%)',
+              filter: 'blur(40px)',
             }}
           />
         </motion.div>

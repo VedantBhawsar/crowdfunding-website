@@ -1,4 +1,3 @@
 export default function HowItWorks() {
-    return <div>dsf</div>;
-  }
-  
+  return <div>dsf</div>;
+}

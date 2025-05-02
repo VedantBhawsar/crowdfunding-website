@@ -1,32 +1,32 @@
-"use client";
-import { motion } from "framer-motion";
-import { RocketIcon, UsersIcon, WalletIcon } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { HeaderText } from "../ui/headerText";
+'use client';
+import { motion } from 'framer-motion';
+import { RocketIcon, UsersIcon, WalletIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { HeaderText } from '../ui/headerText';
 
 export default function HowItWorksSection() {
   const steps = [
     {
-      title: "Create Campaign",
+      title: 'Create Campaign',
       description:
-        "Develop a compelling project proposal that outlines clear objectives and presents a powerful narrative.",
+        'Develop a compelling project proposal that outlines clear objectives and presents a powerful narrative.',
       icon: RocketIcon,
-      variant: "primary",
+      variant: 'primary',
     },
     {
-      title: "Attract Backers",
+      title: 'Attract Backers',
       description:
-        "Engage potential supporters through transparent communication and platform tools.",
+        'Engage potential supporters through transparent communication and platform tools.',
       icon: UsersIcon,
-      variant: "success",
+      variant: 'success',
     },
     {
-      title: "Get Funded",
+      title: 'Get Funded',
       description:
-        "Build meaningful connections with potential supporters by transparency in communication and leveraging platform tools.",
+        'Build meaningful connections with potential supporters by transparency in communication and leveraging platform tools.',
       icon: WalletIcon,
-      variant: "warning",
+      variant: 'warning',
     },
   ];
 
@@ -60,23 +60,14 @@ export default function HowItWorksSection() {
               <Card className="h-full transition-shadow hover:shadow-md">
                 <CardHeader>
                   <div className="flex items-center space-x-3">
-                    <div
-                      className={cn(
-                        "p-3 rounded-full",
-                        "bg-primary/10 text-primary"
-                      )}
-                    >
+                    <div className={cn('p-3 rounded-full', 'bg-primary/10 text-primary')}>
                       <step.icon className="w-5 h-5" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {step.title}
-                    </h3>
+                    <h3 className="text-xl font-semibold text-foreground">{step.title}</h3>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-muted-foreground leading-relaxed">
-                    {step.description}
-                  </p>
+                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                   <div className="bg-muted/50 p-2 rounded-full">
                     <div className="text-sm font-medium text-muted-foreground">
                       Step {index + 1}

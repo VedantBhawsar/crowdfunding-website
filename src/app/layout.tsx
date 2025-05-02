@@ -1,22 +1,23 @@
-import type { Metadata, Viewport } from "next";
-import { Inter, Poppins } from "next/font/google";
-import "./globals.css";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
-import Providers from "@/components/providers";
-import WalletProvider from "@/context/walletContext";
-import { headers } from "next/headers";
+import type { Metadata, Viewport } from 'next';
+import { Inter, Poppins } from 'next/font/google';
+import './globals.css';
+import Navbar from '@/components/navbar';
+import Footer from '@/components/footer';
+import Providers from '@/components/providers';
+import WalletProvider from '@/context/walletContext';
+import { headers } from 'next/headers';
+import { Toaster } from 'sonner';
 
 const poppins = Poppins({
-  weight: ["400", "500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-poppins",
-  display: "swap",
+  weight: ['400', '500', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-poppins',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Crowdfunding website",
-  description: "This is a crowdfunding website",
+  title: 'Crowdfunding website',
+  description: 'This is a crowdfunding website',
 };
 
 export default async function RootLayout({
@@ -25,7 +26,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const headersObj = await headers();
-  const cookies = headersObj.get("cookie");
+  const cookies = headersObj.get('cookie');
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -33,6 +34,7 @@ export default async function RootLayout({
         <WalletProvider cookies={cookies}>
           <Providers>{children}</Providers>
         </WalletProvider>
+        <Toaster />
       </body>
     </html>
   );

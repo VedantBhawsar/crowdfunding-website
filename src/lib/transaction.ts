@@ -1,5 +1,5 @@
 // utils/transaction.ts
-import { ethers } from "ethers";
+import { ethers } from 'ethers';
 
 export interface TransactionConfig {
   to: string;
@@ -30,10 +30,8 @@ export class TransactionService {
     try {
       const tx = await this.signer.sendTransaction({
         to: config.to,
-        value: config.value
-          ? ethers.utils.parseEther(config.value.toString())
-          : 0,
-        data: config.data || "0x",
+        value: config.value ? ethers.utils.parseEther(config.value.toString()) : 0,
+        data: config.data || '0x',
         gasLimit: config.gasLimit || undefined,
       });
 
@@ -44,7 +42,7 @@ export class TransactionService {
         receipt,
       };
     } catch (error) {
-      console.error("Transaction failed:", error);
+      console.error('Transaction failed:', error);
       throw error;
     }
   }
@@ -52,16 +50,10 @@ export class TransactionService {
   // Interact with smart contracts
   async sendContractTransaction(config: ContractTransactionConfig) {
     try {
-      const contract = new ethers.Contract(
-        config.contractAddress,
-        config.abi,
-        this.signer
-      );
+      const contract = new ethers.Contract(config.contractAddress, config.abi, this.signer);
 
       const tx = await contract[config.method](...config.params, {
-        value: config.value
-          ? ethers.utils.parseEther(config.value.toString())
-          : 0,
+        value: config.value ? ethers.utils.parseEther(config.value.toString()) : 0,
       });
 
       const receipt = await tx.wait();
@@ -71,7 +63,7 @@ export class TransactionService {
         receipt,
       };
     } catch (error) {
-      console.error("Contract transaction failed:", error);
+      console.error('Contract transaction failed:', error);
       throw error;
     }
   }
@@ -86,7 +78,7 @@ export class TransactionService {
         message,
       };
     } catch (error) {
-      console.error("Message signing failed:", error);
+      console.error('Message signing failed:', error);
       throw error;
     }
   }
@@ -110,7 +102,7 @@ export class TransactionService {
         value,
       };
     } catch (error) {
-      console.error("Typed data signing failed:", error);
+      console.error('Typed data signing failed:', error);
       throw error;
     }
   }

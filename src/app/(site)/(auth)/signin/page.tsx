@@ -1,28 +1,20 @@
-"use client";
-import * as React from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { FaGithub, FaGoogle, FaTwitter } from "react-icons/fa";
-import { LiteralUnion, signIn } from "next-auth/react";
-import { BuiltInProviderType } from "next-auth/providers/index";
+'use client';
+import * as React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { FaGithub, FaGoogle, FaTwitter } from 'react-icons/fa';
+import { LiteralUnion, signIn } from 'next-auth/react';
+import { BuiltInProviderType } from 'next-auth/providers/index';
 
 export default function SignInPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSignin(
-    provider: LiteralUnion<BuiltInProviderType> | undefined
-  ) {
+  function handleSignin(provider: LiteralUnion<BuiltInProviderType> | undefined) {
     setIsSubmitting(true);
     signIn(provider, {
       redirect: true,
-      callbackUrl: "/onboarding",
+      callbackUrl: '/onboarding',
     });
   }
 
@@ -53,7 +45,7 @@ export default function SignInPage() {
               size="sm"
               variant="secondary"
               className="w-full"
-              onClick={() => handleSignin("github")}
+              onClick={() => handleSignin('github')}
               disabled={isSubmitting}
             >
               <FaGithub className="h-2 w-2" />
@@ -63,7 +55,7 @@ export default function SignInPage() {
               size="sm"
               variant="secondary"
               className="w-full"
-              onClick={() => handleSignin("google")}
+              onClick={() => handleSignin('google')}
               disabled={isSubmitting}
             >
               <FaGoogle className="h-2 w-2" />

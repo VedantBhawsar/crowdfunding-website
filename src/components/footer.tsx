@@ -1,36 +1,29 @@
-"use client";
-import React from "react";
-import { motion } from "framer-motion";
-import {
-  Twitter,
-  Facebook,
-  Instagram,
-  Linkedin,
-  Github,
-  Mail,
-} from "lucide-react";
-import Link from "next/link";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+'use client';
+import React from 'react';
+import { motion } from 'framer-motion';
+import { Twitter, Facebook, Instagram, Linkedin, Github, Mail } from 'lucide-react';
+import Link from 'next/link';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 
 const socialLinks = [
-  { icon: Twitter, href: "https://twitter.com/crowdfundify", label: "Twitter" },
+  { icon: Twitter, href: 'https://twitter.com/crowdfundify', label: 'Twitter' },
   {
     icon: Facebook,
-    href: "https://facebook.com/crowdfundify",
-    label: "Facebook",
+    href: 'https://facebook.com/crowdfundify',
+    label: 'Facebook',
   },
   {
     icon: Instagram,
-    href: "https://instagram.com/crowdfundify",
-    label: "Instagram",
+    href: 'https://instagram.com/crowdfundify',
+    label: 'Instagram',
   },
   {
     icon: Linkedin,
-    href: "https://linkedin.com/company/crowdfundify",
-    label: "LinkedIn",
+    href: 'https://linkedin.com/company/crowdfundify',
+    label: 'LinkedIn',
   },
-  { icon: Github, href: "https://github.com/crowdfundify", label: "GitHub" },
+  { icon: Github, href: 'https://github.com/crowdfundify', label: 'GitHub' },
 ];
 
 function Footer() {
@@ -53,7 +46,7 @@ function Footer() {
               </p>
             </div>
             <div className="flex space-x-4">
-              {socialLinks.map((social) => (
+              {socialLinks.map(social => (
                 <a
                   key={social.label}
                   href={social.href}
@@ -70,33 +63,27 @@ function Footer() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="text-base font-semibold text-foreground mb-4">
-                Platform
-              </h3>
+              <h3 className="text-base font-semibold text-foreground mb-4">Platform</h3>
               <ul className="space-y-2">
-                {["Browse Projects", "Launch Campaign", "How It Works"].map(
-                  (item) => (
-                    <li key={item}>
-                      <Link
-                        href={`/${item.toLowerCase().replace(/\s+/g, "-")}`}
-                        className="text-base text-muted-foreground hover:text-primary transition-colors "
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  )
-                )}
+                {['Browse Projects', 'Launch Campaign', 'How It Works'].map(item => (
+                  <li key={item}>
+                    <Link
+                      href={`/${item.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="text-base text-muted-foreground hover:text-primary transition-colors "
+                    >
+                      {item}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </div>
             <div>
-              <h3 className="text-base font-semibold text-foreground mb-4">
-                Company
-              </h3>
+              <h3 className="text-base font-semibold text-foreground mb-4">Company</h3>
               <ul className="space-y-2">
-                {["About Us", "Contact", "Careers"].map((item) => (
+                {['About Us', 'Contact', 'Careers'].map(item => (
                   <li key={item}>
                     <Link
-                      href={`/${item.toLowerCase().replace(/\s+/g, "")}`}
+                      href={`/${item.toLowerCase().replace(/\s+/g, '')}`}
                       className="text-base text-muted-foreground hover:text-primary transition-colors"
                     >
                       {item}
@@ -108,15 +95,9 @@ function Footer() {
           </div>
 
           <div>
-            <h3 className="text-base font-semibold text-foreground mb-4">
-              Stay Updated
-            </h3>
+            <h3 className="text-base font-semibold text-foreground mb-4">Stay Updated</h3>
             <div className="flex flex-col space-y-4">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                className="bg-background"
-              />
+              <Input type="email" placeholder="Enter your email" className="bg-background" />
               <Button>
                 <Mail className="mr-2 h-4 w-4" />
                 Subscribe

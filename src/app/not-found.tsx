@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { HomeIcon, ArrowLeft } from "lucide-react";
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { HomeIcon, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center bg-background">
       <div className="container max-w-md">
-        <motion.div 
+        <motion.div
           className="text-center space-y-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -23,9 +23,7 @@ export default function NotFound() {
           >
             <div className="text-9xl font-bold text-primary/10">404</div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                Page Not Found
-              </h1>
+              <h1 className="text-2xl md:text-3xl font-bold text-foreground">Page Not Found</h1>
             </div>
           </motion.div>
 

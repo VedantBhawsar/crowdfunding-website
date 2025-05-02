@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function SettingsPage() {
   const [profileData, setProfileData] = useState({
-    profilePhoto: "https://via.placeholder.com/150",
-    name: "John Doe",
-    email: "johndoe@example.com",
+    profilePhoto: 'https://via.placeholder.com/150',
+    name: 'John Doe',
+    email: 'johndoe@example.com',
     projects: 5,
     campaigns: 2,
     donations: 10,
@@ -19,11 +19,11 @@ export default function SettingsPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setProfileData((prev) => ({ ...prev, [name]: value }));
+    setProfileData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSave = () => {
-    alert("Profile updated successfully!");
+    alert('Profile updated successfully!');
   };
 
   return (
@@ -51,7 +51,7 @@ export default function SettingsPage() {
                 size="icon"
                 variant="outline"
                 className="absolute bottom-0 right-0 text-xs p-1 bg-indigo-600 text-white hover:bg-indigo-700 transition-all group-hover:scale-105"
-                onClick={() => alert("Change Profile Photo functionality")}
+                onClick={() => alert('Change Profile Photo functionality')}
               >
                 Edit
               </Button>
