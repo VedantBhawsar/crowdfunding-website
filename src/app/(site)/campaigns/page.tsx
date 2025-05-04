@@ -299,7 +299,7 @@ const CampaignsPage = () => {
             <div ref={loaderRef} className="h-16 flex justify-center items-center mt-8">
               {isLoadingMore && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
               {!isLoadingMore && !hasMore && campaigns.length > 0 && (
-                <p className="text-sm text-muted-foreground">You've reached the end!</p>
+                <p className="text-sm text-muted-foreground">You&apos;ve reached the end!</p>
               )}
               {/* Show non-critical error if loading *more* failed */}
               {!isLoadingMore && error && page > 1 && (
