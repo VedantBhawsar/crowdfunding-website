@@ -43,4 +43,5 @@ export const authOptions: NextAuthOptions = {
     signIn: '/signin',
     error: '/error',
   },
+  debug: process.env.NODE_ENV === 'development',
 };

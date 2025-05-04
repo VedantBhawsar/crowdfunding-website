@@ -125,8 +125,6 @@ model Campaign {
   creator          User?            @relation("UserCampaigns", fields: [creatorId], references: [id], onDelete: SetNull)
   activities       Activity[]       @relation("CampaignActivities")
   comments         Comment[]        @relation("CampaignComments")
-  organizationId   String?          @mongodb.ObjectId
-  organization     Organization?    @relation(fields: [organizationId], references: [id])
   status           CampaignStatus   @default(DRAFT)
   featured         Boolean          @default(false)
   createdAt        DateTime         @default(now())
@@ -138,7 +136,6 @@ model Campaign {
   @@index([creatorId])
   @@index([category])
   @@index([featured])
-  @@index([organizationId])
 }
 
 enum CampaignCategory {
@@ -289,37 +286,15 @@ model VerificationToken {
   @@index([expires])
 }
 
-model Organization {
-  id          String     @id @default(auto()) @map("_id") @mongodb.ObjectId
-  name        String
-  slug        String     @unique
-  description String?
-  logo        String?
-  website     String?
-  twitter     String?
-  members     UserOrg[]
-  campaigns   Campaign[]
-  verified    Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  isDeleted   Boolean    @default(false)
-  deletedAt   DateTime?
-
-  @@index([verified])
-}
-
 model UserOrg {
   id             String       @id @default(auto()) @map("_id") @mongodb.ObjectId
   userId         String       @mongodb.ObjectId
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationId String       @mongodb.ObjectId
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   role           OrgRole      @default(MEMBER)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  @@unique([userId, organizationId])
-  @@index([organizationId])
+  @@unique([userId])
   @@index([role])
 }
 

@@ -9,6 +9,9 @@ export async function GET(request: Request) {
     let id = searchParams.get('id');
     const session = await getServerSession(authOptions);
 
+
+    console.log(session?.user.id)
+
     if (!id) {
       id = session?.user?.id as string;
     }
@@ -30,6 +33,7 @@ export async function GET(request: Request) {
             },
           },
         },
+        notificationSettings: true,
         createdCampaigns: true,
       },
     });

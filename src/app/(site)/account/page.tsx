@@ -16,6 +16,7 @@ import {
   Upload,
   Clock,
   ExternalLink,
+  Users,
 } from 'lucide-react';
 import {
   Select,
@@ -27,7 +28,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { redirect, useSearchParams } from 'next/navigation';
+import { redirect, useRouter, useSearchParams } from 'next/navigation';
 import { ProfileForm, ProfileFormSkeleton } from '@/components/profile-form';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { useEffect, useState } from 'react';
@@ -44,13 +45,32 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Backers, Campaign, Transaction, User } from '@prisma/client';
+import {
+  Backers,
+  Campaign,
+  Transaction,
+  User,
+  NotificationSettings,
+  UserOrg,
+} from '@prisma/client';
 import CampaignCard from '@/components/campaign/CampaignCard';
+import { useTheme } from 'next-themes';
 
+// Updated interface to match the new schema
 interface IUser extends User {
   transactions: Transaction[];
   backings: Backers[];
   createdCampaigns: Campaign[];
+  wallet: {
+    address: string;
+    isConnected: boolean;
+    caipAddress: string;
+    status: string;
+    balance: number;
+    lastTransactionAt?: Date;
+    networkId?: string;
+  } | null;
+  notificationSettings: NotificationSettings | null;
 }
 
 const AccountPage = () => {
@@ -60,17 +80,21 @@ const AccountPage = () => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const { setTheme } = useTheme();
+
+  function handleChangeTheme(checked: boolean) {
+    setTheme(checked ? 'dark' : 'light');
+  }
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setIsLoading(true);
-        const url = new URL('/api/user/data', window.location.origin);
-        url.searchParams.set('id', userId || '');
-        const response = await fetch(url);
+        const response = await fetch(`/api/user/data?id=${session?.user.id}`);
         if (!response.ok) throw new Error('Failed to fetch user data');
         const data = await response.json();
         setUser(data);
-        setCampaigns(data.createdCampaigns);
+        setCampaigns(data.createdCampaigns?.filter((c: Campaign) => !c.isDeleted) || []);
       } catch (error) {
         console.error('Error fetching user data:', error);
       } finally {
@@ -139,7 +163,6 @@ const AccountPage = () => {
       if (!response.ok) throw new Error('Failed to upload avatar');
 
       const data = await response.json();
-      console.log(data);
       await updateSession({
         ...session,
         user: {
@@ -151,6 +174,38 @@ const AccountPage = () => {
     } catch (error) {
       console.error('Error uploading avatar:', error);
       toast.error('Failed to update avatar');
+    }
+  };
+
+  const handleUpdateNotificationSettings = async (settingName: string, value: boolean) => {
+    try {
+      const response = await fetch('/api/user/notifications', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          [settingName]: value,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update notification settings');
+
+      // Update local state
+      if (user && user.notificationSettings) {
+        setUser({
+          ...user,
+          notificationSettings: {
+            ...user.notificationSettings,
+            [settingName]: value,
+          },
+        });
+      }
+
+      toast.success('Notification settings updated');
+    } catch (error) {
+      console.error('Error updating notification settings:', error);
+      toast.error('Failed to update notification settings');
     }
   };
 
@@ -181,6 +236,7 @@ const AccountPage = () => {
           {user?.id !== session.user.id && (
             <p className="text-sm text-muted-foreground mt-3">{user?.bio}</p>
           )}
+          {user?.isVerified && <Badge className="mt-2 bg-blue-500">Verified User</Badge>}
         </div>
       </div>
       <Tabs
@@ -275,14 +331,14 @@ const AccountPage = () => {
               </h2>
             </CardHeader>
             <CardContent>
-              <div className=" grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {campaigns.length > 0 ? (
                   campaigns.map((campaign: Campaign) => (
                     <CampaignCard key={campaign.id} campaign={campaign} />
                   ))
                 ) : (
-                  <div className="w-full col-span-3  text-center">
-                    <p className=" text-gray-500">No campaigns found</p>
+                  <div className="w-full col-span-3 text-center">
+                    <p className="text-gray-500">No campaigns found</p>
                   </div>
                 )}
               </div>
@@ -319,36 +375,74 @@ const AccountPage = () => {
                       {user?.role === 'INVESTOR' ? 'investments' : 'campaigns'}
                     </p>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={user?.notificationSettings?.emailNotifications ?? false}
+                    onCheckedChange={checked =>
+                      handleUpdateNotificationSettings('emailNotifications', checked)
+                    }
+                  />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Browser Notifications</p>
+                    <p className="font-medium">Push Notifications</p>
                     <p className="text-sm text-gray-500">Receive real-time alerts</p>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={user?.notificationSettings?.pushNotifications ?? false}
+                    onCheckedChange={checked =>
+                      handleUpdateNotificationSettings('pushNotifications', checked)
+                    }
+                  />
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  <h2 className="text-xl font-semibold">Security</h2>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="font-medium">Two-Factor Authentication</p>
-                    <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
+                    <p className="font-medium">New Backer Notifications</p>
+                    <p className="text-sm text-gray-500">
+                      Get notified when someone backs your campaign
+                    </p>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={user?.notificationSettings?.newBackerNotification ?? false}
+                    onCheckedChange={checked =>
+                      handleUpdateNotificationSettings('newBackerNotification', checked)
+                    }
+                  />
                 </div>
-                <div className="flex items-center gap-4">
-                  <Button variant="outline">Change Password</Button>
-                  <Button variant="outline">Manage Connected Wallets</Button>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Comment Notifications</p>
+                    <p className="text-sm text-gray-500">Get notified about new comments</p>
+                  </div>
+                  <Switch
+                    checked={user?.notificationSettings?.commentNotification ?? false}
+                    onCheckedChange={checked =>
+                      handleUpdateNotificationSettings('commentNotification', checked)
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Update Notifications</p>
+                    <p className="text-sm text-gray-500">Get notified about campaign updates</p>
+                  </div>
+                  <Switch
+                    checked={user?.notificationSettings?.updateNotification ?? false}
+                    onCheckedChange={checked =>
+                      handleUpdateNotificationSettings('updateNotification', checked)
+                    }
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Milestone Notifications</p>
+                    <p className="text-sm text-gray-500">Get notified about milestone updates</p>
+                  </div>
+                  <Switch
+                    checked={user?.notificationSettings?.milestoneNotification ?? false}
+                    onCheckedChange={checked =>
+                      handleUpdateNotificationSettings('milestoneNotification', checked)
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -382,7 +476,7 @@ const AccountPage = () => {
                     <p className="font-medium">Dark Mode</p>
                     <p className="text-sm text-muted-foreground">Toggle dark mode theme</p>
                   </div>
-                  <Switch />
+                  <Switch onCheckedChange={handleChangeTheme} />
                 </div>
               </CardContent>
             </Card>
@@ -393,7 +487,7 @@ const AccountPage = () => {
   );
 };
 
-// New component for managing wallet connection
+// Enhanced wallet connection manager to handle network ID and balance
 const WalletConnectionManager = ({ user }: { user: any }) => {
   const { address, isConnected, caipAddress, status } = useAppKitAccount();
   const [isLoading, setIsLoading] = useState(false);
@@ -404,8 +498,12 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
     address: string | null;
     isConnected: boolean;
     caipAddress: string | null;
+    balance: number;
+    networkId: string | null;
   } | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
+  const router = useRouter();
+  const { data: session, update: updateSession } = useSession();
 
   // Fetch the saved wallet status on component mount
   useEffect(() => {
@@ -444,6 +542,10 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
           storedWalletData?.address !== address ||
           storedWalletData?.caipAddress !== caipAddress
         ) {
+          // In a production environment, you would fetch the balance and network ID here
+          const dummyBalance = Math.random() * 10; // Just for demo
+          const networkId = '1'; // Ethereum mainnet
+
           const response = await fetch('/api/wallet/update', {
             method: 'POST',
             headers: {
@@ -453,6 +555,9 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
               address: address || null,
               isConnected: !!isConnected,
               caipAddress: caipAddress || null,
+              balance: isConnected ? dummyBalance : 0,
+              networkId: isConnected ? networkId : null,
+              lastTransactionAt: isConnected ? new Date().toISOString() : null,
             }),
           });
 
@@ -500,6 +605,9 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
           address: null,
           isConnected: false,
           caipAddress: null,
+          balance: 0,
+          networkId: null,
+          lastTransactionAt: null,
         }),
       });
 
@@ -512,7 +620,14 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
       toast.success('Wallet disconnected successfully');
 
       // Force page reload to completely disconnect the wallet
-      window.location.reload();
+      router.refresh();
+      updateSession({
+        user: {
+          ...session?.user,
+          walletAddress: null,
+          isVerified: false,
+        },
+      });
     } catch (error) {
       console.error('Wallet disconnection error:', error);
       toast.error('Failed to disconnect wallet');
@@ -549,22 +664,56 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
       </div>
 
       {address && (
-        <div className="space-y-2">
-          <Label>Wallet Address</Label>
-          <div className="flex items-center gap-2">
-            <Input value={address} disabled />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => {
-                navigator.clipboard.writeText(address);
-                toast.success('Address copied to clipboard');
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
+        <>
+          <div className="space-y-2">
+            <Label>Wallet Address</Label>
+            <div className="flex items-center gap-2">
+              <Input value={address} disabled />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => {
+                  navigator.clipboard.writeText(address);
+                  toast.success('Address copied to clipboard');
+                }}
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+
+          {storedWalletData?.balance !== undefined && (
+            <div className="space-y-2">
+              <Label>Balance</Label>
+              <div className="flex items-center gap-2">
+                <Input value={`${storedWalletData.balance.toFixed(6)} ETH`} disabled />
+              </div>
+            </div>
+          )}
+
+          {storedWalletData?.networkId && (
+            <div className="space-y-2">
+              <Label>Network</Label>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">
+                  {storedWalletData.networkId === '1'
+                    ? 'Ethereum Mainnet'
+                    : storedWalletData.networkId === '5'
+                      ? 'Goerli Testnet'
+                      : storedWalletData.networkId === '11155111'
+                        ? 'Sepolia Testnet'
+                        : `Chain ID: ${storedWalletData.networkId}`}
+                </Badge>
+              </div>
+            </div>
+          )}
+
+          {user?.wallet?.lastTransactionAt && (
+            <div className="text-sm text-gray-500">
+              Last transaction: {new Date(user.wallet.lastTransactionAt).toLocaleString()}
+            </div>
+          )}
+        </>
       )}
 
       <div className="flex gap-2">
@@ -616,7 +765,9 @@ function UserInvestments({ userData }: { userData: any }) {
                 </div>
               </div>
             ) : (
-              <div className="text-center text-gray-500">You haven&apos;t made any investments yet</div>
+              <div className="text-center text-gray-500">
+                You haven&apos;t made any investments yet
+              </div>
             )}
           </div>
         </CardContent>
@@ -628,7 +779,9 @@ function UserInvestments({ userData }: { userData: any }) {
 function BackingsList({ backings }: { backings: any }) {
   if (!backings || backings.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">You haven&apos;t backed any campaigns yet</div>
+      <div className="text-center py-8 text-gray-500">
+        You haven&apos;t backed any campaigns yet
+      </div>
     );
   }
 

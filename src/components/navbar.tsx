@@ -91,9 +91,12 @@ const Navbar = () => {
                 </div>
               ) : status !== 'authenticated' ? (
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    Sign in
-                  </Button>
+                  <Link href="/signin">
+                    <Button variant="outline" size="sm">
+
+                      Sign in
+                    </Button>
+                  </Link>
                 </div>
               ) : (
                 <DropdownMenu>

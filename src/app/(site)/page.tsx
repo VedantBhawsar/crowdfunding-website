@@ -8,10 +8,6 @@ const LandingPage = () => {
   return (
     <div className="min-h-full mt-10 ">
       <HeroSection />
-      {/* <FeatureSection />
-      <SecuritySection />
-      <HowItWorksSection />
-      <TestimonialSection /> */}
       <CTASection />
       <Footer />
     </div>
