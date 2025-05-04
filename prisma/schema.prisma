@@ -8,8 +8,8 @@ generator client {
 }
 
 model Account {
-  id                String  @id @default(auto()) @map("_id") @mongodb.ObjectId
-  userId            String  @mongodb.ObjectId
+  id                String   @id @default(auto()) @map("_id") @mongodb.ObjectId
+  userId            String   @mongodb.ObjectId
   type              String
   provider          String
   providerAccountId String
@@ -20,6 +20,8 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -32,58 +34,80 @@ model Session {
   userId       String   @mongodb.ObjectId
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model User {
-  id               String        @id @default(auto()) @map("_id") @mongodb.ObjectId
-  name             String?
-  displayName      String?
-  email            String?       @unique
-  emailVerified    DateTime?
-  image            String?
-  onboarded        Boolean       @default(false)
-  role             Role?         @default(INVESTOR)
-  bio              String?
-  location         String?
-  walletAddress    String?
-  accounts         Account[]
-  sessions         Session[]
-  wallet           Wallet?
-  createdCampaigns Campaign[]    @relation("UserCampaigns")
-  backings         Backers[]     @relation("UserBackings")
-  transactions     Transaction[] @relation("UserTransactions")
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id                      String                @id @default(auto()) @map("_id") @mongodb.ObjectId
+  name                    String?
+  displayName             String?
+  email                   String?               @unique
+  emailVerified           DateTime?
+  image                   String?
+  onboarded               Boolean               @default(false)
+  role                    UserRole              @default(INVESTOR)
+  bio                     String?
+  location                String?
+  walletAddress           String?
+  failedLoginAttempts     Int                   @default(0)
+  lastLoginAt             DateTime?
+  bannedUntil             DateTime?
+  isVerified              Boolean               @default(false)
+  accounts                Account[]
+  sessions                Session[]
+  wallet                  Wallet?
+  createdCampaigns        Campaign[]            @relation("UserCampaigns")
+  backings                Backers[]             @relation("UserBackings")
+  transactions            Transaction[]         @relation("UserTransactions")
+  comments                Comment[]             @relation("UserComments")
+  organizationMemberships UserOrg[]
+  notificationSettings    NotificationSettings?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  isDeleted               Boolean               @default(false)
+  deletedAt               DateTime?
+
+  @@index([role])
+  @@index([isVerified])
 }
 
-enum Role {
+enum UserRole {
   INVESTOR
   CREATOR
+  ADMIN
 }
 
 model Wallet {
-  id          String   @id @default(auto()) @map("_id") @mongodb.ObjectId
-  address     String   @unique
-  isConnected Boolean
-  caipAddress String
-  status      String
-  userId      String?  @unique @mongodb.ObjectId
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String    @id @default(auto()) @map("_id") @mongodb.ObjectId
+  address           String    @unique
+  isConnected       Boolean
+  caipAddress       String
+  status            String
+  balance           Float     @default(0)
+  lastTransactionAt DateTime?
+  networkId         String? // For multi-chain support
+  userId            String?   @unique @mongodb.ObjectId
+  user              User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 model Campaign {
-  id               String         @id @default(auto()) @map("_id") @mongodb.ObjectId
-  slug             String         @unique
+  id               String           @id @default(auto()) @map("_id") @mongodb.ObjectId
+  slug             String           @unique
   title            String
   shortDescription String
   description      String
   goal             Float
-  durationDays     Int
+  raisedAmount     Float            @default(0)
+  startDate        DateTime
+  endDate          DateTime
   ipfsHash         String?
   images           String[]
-  category         String
+  category         CampaignCategory
   tags             String[]
   riskAssessment   String?
   website          String?
@@ -91,20 +115,44 @@ model Campaign {
   instagram        String?
   linkedin         String?
   github           String?
-  creatorId        String?        @mongodb.ObjectId
+  creatorId        String?          @mongodb.ObjectId
   creatorName      String
   creatorAvatar    String
-  raisedAmount     Float          @default(0)
-  daysLeft         Int?
-  milestones       Milestone[]    @relation("CampaignMilestones")
-  rewards          Reward[]       @relation("CampaignRewards")
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  backers          Backers[]      @relation("CampaignBackers")
-  transactions     Transaction[]  @relation("CampaignTransactions")
-  creator          User?          @relation("UserCampaigns", fields: [creatorId], references: [id], onDelete: SetNull)
-  activities       Activity[]     @relation("CampaignActivities")
-  status           CampaignStatus @default(ACTIVE)
+  milestones       Milestone[]      @relation("CampaignMilestones")
+  rewards          Reward[]         @relation("CampaignRewards")
+  backers          Backers[]        @relation("CampaignBackers")
+  transactions     Transaction[]    @relation("CampaignTransactions")
+  creator          User?            @relation("UserCampaigns", fields: [creatorId], references: [id], onDelete: SetNull)
+  activities       Activity[]       @relation("CampaignActivities")
+  comments         Comment[]        @relation("CampaignComments")
+  organizationId   String?          @mongodb.ObjectId
+  organization     Organization?    @relation(fields: [organizationId], references: [id])
+  status           CampaignStatus   @default(DRAFT)
+  featured         Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  isDeleted        Boolean          @default(false)
+  deletedAt        DateTime?
+
+  @@index([status])
+  @@index([creatorId])
+  @@index([category])
+  @@index([featured])
+  @@index([organizationId])
+}
+
+enum CampaignCategory {
+  TECHNOLOGY
+  ARTS
+  GAMES
+  FILM
+  MUSIC
+  DESIGN
+  FOOD
+  PUBLISHING
+  FASHION
+  COMMUNITY
+  OTHER
 }
 
 enum CampaignStatus {
@@ -125,9 +173,15 @@ model Transaction {
   rewardId   String?           @mongodb.ObjectId
   reward     Reward?           @relation(fields: [rewardId], references: [id], onDelete: SetNull)
   txHash     String? // Blockchain transaction hash
+  fee        Float? // Platform fee or gas fee
   status     TransactionStatus @default(PENDING)
+  metadata   Json? // Additional transaction data
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
+
+  @@index([status])
+  @@index([userId, campaignId])
+  @@index([txHash])
 }
 
 enum TransactionStatus {
@@ -138,59 +192,91 @@ enum TransactionStatus {
 }
 
 model Backers {
-  id         String   @id @default(auto()) @map("_id") @mongodb.ObjectId
-  userId     String   @mongodb.ObjectId
-  user       User     @relation("UserBackings", fields: [userId], references: [id], onDelete: Cascade)
-  campaignId String   @mongodb.ObjectId
-  campaign   Campaign @relation("CampaignBackers", fields: [campaignId], references: [id], onDelete: Cascade)
-  amount     Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(auto()) @map("_id") @mongodb.ObjectId
+  userId      String   @mongodb.ObjectId
+  user        User     @relation("UserBackings", fields: [userId], references: [id], onDelete: Cascade)
+  campaignId  String   @mongodb.ObjectId
+  campaign    Campaign @relation("CampaignBackers", fields: [campaignId], references: [id], onDelete: Cascade)
+  amount      Float
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, campaignId])
+  @@index([userId])
+  @@index([campaignId])
 }
 
 model Milestone {
   id                   String          @id @default(auto()) @map("_id") @mongodb.ObjectId
   title                String
   description          String
-  targetDate           String?
+  targetDate           DateTime?
   completionPercentage Int             @default(0)
   status               MilestoneStatus @default(PENDING)
   campaignId           String          @mongodb.ObjectId
   campaign             Campaign        @relation("CampaignMilestones", fields: [campaignId], references: [id], onDelete: Cascade)
+  fundingAmount        Float           @default(0)
+  evidence             String? // Link or document proving milestone completion
+  completedAt          DateTime?
   createdAt            DateTime        @default(now())
   updatedAt            DateTime        @updatedAt
-  fundingAmount        Float           @default(0)
+
+  @@index([campaignId])
+  @@index([status])
 }
 
 enum MilestoneStatus {
   PENDING
+  IN_PROGRESS
   COMPLETED
+  DELAYED
 }
 
 model Reward {
-  id           String        @id @default(auto()) @map("_id") @mongodb.ObjectId
-  title        String
-  description  String
-  amount       Float
-  deliveryDate String?
-  campaignId   String        @mongodb.ObjectId
-  campaign     Campaign      @relation("CampaignRewards", fields: [campaignId], references: [id], onDelete: Cascade)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  transactions Transaction[]
-  maxClaimable Int? // Optional limit on how many can be claimed
-  claimed      Int           @default(0)
+  id                    String        @id @default(auto()) @map("_id") @mongodb.ObjectId
+  title                 String
+  description           String
+  amount                Float
+  deliveryDate          DateTime?
+  campaignId            String        @mongodb.ObjectId
+  campaign              Campaign      @relation("CampaignRewards", fields: [campaignId], references: [id], onDelete: Cascade)
+  maxClaimable          Int? // Optional limit on how many can be claimed
+  claimed               Int           @default(0)
+  image                 String?
+  shippingRequired      Boolean       @default(false)
+  estimatedShippingCost Float?
+  transactions          Transaction[]
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([campaignId])
 }
 
 model Activity {
-  id          String   @id @default(auto()) @map("_id") @mongodb.ObjectId
-  createdAt   DateTime @default(now())
-  type        String // e.g., "contribution", "milestone_completed"
+  id          String       @id @default(auto()) @map("_id") @mongodb.ObjectId
+  type        ActivityType
   description String
-  campaignId  String   @mongodb.ObjectId
-  campaign    Campaign @relation("CampaignActivities", fields: [campaignId], references: [id], onDelete: Cascade)
-  userId      String?  @mongodb.ObjectId // Optional reference to user who caused the activity
+  campaignId  String       @mongodb.ObjectId
+  campaign    Campaign     @relation("CampaignActivities", fields: [campaignId], references: [id], onDelete: Cascade)
+  userId      String?      @mongodb.ObjectId // Optional reference to user who caused the activity
   metadata    Json? // Optional additional data about the activity
+  createdAt   DateTime     @default(now())
+
+  @@index([campaignId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum ActivityType {
+  CONTRIBUTION
+  MILESTONE_COMPLETED
+  CAMPAIGN_CREATED
+  CAMPAIGN_UPDATED
+  REWARD_CLAIMED
+  COMMENT_ADDED
+  STATUS_CHANGED
+  REFUND_ISSUED
 }
 
 model VerificationToken {
@@ -200,4 +286,78 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@index([expires])
+}
+
+model Organization {
+  id          String     @id @default(auto()) @map("_id") @mongodb.ObjectId
+  name        String
+  slug        String     @unique
+  description String?
+  logo        String?
+  website     String?
+  twitter     String?
+  members     UserOrg[]
+  campaigns   Campaign[]
+  verified    Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  isDeleted   Boolean    @default(false)
+  deletedAt   DateTime?
+
+  @@index([verified])
+}
+
+model UserOrg {
+  id             String       @id @default(auto()) @map("_id") @mongodb.ObjectId
+  userId         String       @mongodb.ObjectId
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String       @mongodb.ObjectId
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           OrgRole      @default(MEMBER)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@index([role])
+}
+
+enum OrgRole {
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model Comment {
+  id         String    @id @default(auto()) @map("_id") @mongodb.ObjectId
+  content    String
+  campaignId String    @mongodb.ObjectId
+  campaign   Campaign  @relation("CampaignComments", fields: [campaignId], references: [id], onDelete: Cascade)
+  userId     String    @mongodb.ObjectId
+  user       User      @relation("UserComments", fields: [userId], references: [id], onDelete: Cascade)
+  parentId   String?   @mongodb.ObjectId
+  parent     Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies    Comment[] @relation("CommentReplies")
+  isHidden   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([parentId])
+}
+
+model NotificationSettings {
+  id                    String   @id @default(auto()) @map("_id") @mongodb.ObjectId
+  userId                String   @unique @mongodb.ObjectId
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailNotifications    Boolean  @default(true)
+  pushNotifications     Boolean  @default(true)
+  newBackerNotification Boolean  @default(true)
+  commentNotification   Boolean  @default(true)
+  updateNotification    Boolean  @default(true)
+  milestoneNotification Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
