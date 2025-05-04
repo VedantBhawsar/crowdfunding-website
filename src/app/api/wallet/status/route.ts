@@ -21,6 +21,9 @@ export async function GET() {
         isConnected: true,
         caipAddress: true,
         status: true,
+        balance: true,
+        networkId: true,
+        lastTransactionAt: true,
       },
     });
 
@@ -31,6 +34,9 @@ export async function GET() {
         address: null,
         caipAddress: null,
         status: 'inactive',
+        balance: 0,
+        networkId: null,
+        lastTransactionAt: null,
       });
     }
 

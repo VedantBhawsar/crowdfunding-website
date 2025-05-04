@@ -80,7 +80,7 @@ const AccountPage = () => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
 
   function handleChangeTheme(checked: boolean) {
     setTheme(checked ? 'dark' : 'light');
@@ -476,7 +476,7 @@ const AccountPage = () => {
                     <p className="font-medium">Dark Mode</p>
                     <p className="text-sm text-muted-foreground">Toggle dark mode theme</p>
                   </div>
-                  <Switch onCheckedChange={handleChangeTheme} />
+                  <Switch checked={theme === 'dark'} onCheckedChange={handleChangeTheme} />
                 </div>
               </CardContent>
             </Card>
@@ -491,9 +491,9 @@ const AccountPage = () => {
 const WalletConnectionManager = ({ user }: { user: any }) => {
   const { address, isConnected, caipAddress, status } = useAppKitAccount();
   const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'error'>(
-    'disconnected'
-  );
+  const [connectionStatus, setConnectionStatus] = useState<
+    'connected' | 'disconnected' | 'error' | 'connecting'
+  >('disconnected');
   const [storedWalletData, setStoredWalletData] = useState<{
     address: string | null;
     isConnected: boolean;
@@ -502,6 +502,7 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
     networkId: string | null;
   } | null>(null);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();
 
@@ -515,19 +516,28 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
         const data = await response.json();
         setStoredWalletData(data);
 
+        // If we have a stored connection but the wallet isn't currently connected
+        // This helps with reconnection after page refresh
         if (data.isConnected && !isConnected) {
-          console.log('Previous wallet connection detected');
+          console.log('Previous wallet connection detected, attempting to reconnect');
+          // We don't force reconnection here, just show the state
+          setConnectionStatus('disconnected');
+          setConnectionError('Your wallet was previously connected but is now disconnected. Please reconnect.');
+        } else if (isConnected) {
+          setConnectionStatus('connected');
+          setConnectionError(null);
         }
 
         setInitialLoad(false);
       } catch (error) {
         console.error('Error fetching wallet status:', error);
         setInitialLoad(false);
+        setConnectionError('Failed to fetch wallet status. Please try again.');
       }
     };
 
     fetchWalletStatus();
-  }, []);
+  }, [isConnected]);
 
   // Update database when connection state changes
   useEffect(() => {
@@ -535,6 +545,11 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
       try {
         // Skip during initial loading
         if (initialLoad) return;
+
+        // If we're connecting, update the status
+        if (isConnected && connectionStatus !== 'connected') {
+          setConnectionStatus('connecting');
+        }
 
         // Only update if there's a change in connection status
         if (
@@ -558,6 +573,7 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
               balance: isConnected ? dummyBalance : 0,
               networkId: isConnected ? networkId : null,
               lastTransactionAt: isConnected ? new Date().toISOString() : null,
+              status: isConnected ? 'active' : 'inactive',
             }),
           });
 
@@ -568,10 +584,21 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
           const data = await response.json();
           setStoredWalletData(data.data);
 
+          // Update session with wallet information
+          if (isConnected && address) {
+            await updateSession({
+              user: {
+                ...session?.user,
+                walletAddress: address,
+              },
+            });
+          }
+
           // Don't show toast on first load
           if (!initialLoad) {
             if (isConnected) {
               toast.success('Wallet connection saved');
+              setConnectionError(null);
             } else {
               toast.info('Wallet disconnected');
             }
@@ -582,6 +609,7 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
       } catch (error) {
         console.error('Wallet connection error:', error);
         setConnectionStatus('error');
+        setConnectionError('Failed to update wallet status. Please try again.');
         toast.error('Failed to update wallet status');
       }
     };
@@ -590,7 +618,7 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
     if (typeof isConnected !== 'undefined') {
       updateWalletConnection();
     }
-  }, [isConnected, address, caipAddress, initialLoad]);
+  }, [isConnected, address, caipAddress, initialLoad, session, updateSession, connectionStatus]);
 
   const handleDisconnect = async () => {
     setIsLoading(true);
@@ -608,6 +636,7 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
           balance: 0,
           networkId: null,
           lastTransactionAt: null,
+          status: 'inactive',
         }),
       });
 
@@ -617,23 +646,37 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
 
       setConnectionStatus('disconnected');
       setStoredWalletData(null);
+      setConnectionError(null);
       toast.success('Wallet disconnected successfully');
 
-      // Force page reload to completely disconnect the wallet
-      router.refresh();
-      updateSession({
+      // Update session first
+      await updateSession({
         user: {
           ...session?.user,
           walletAddress: null,
           isVerified: false,
         },
       });
+
+      // Force page reload to completely disconnect the wallet
+      // Using setTimeout to ensure the session update completes first
+      setTimeout(() => {
+        router.refresh();
+      }, 100);
     } catch (error) {
       console.error('Wallet disconnection error:', error);
+      setConnectionError('Failed to disconnect wallet. Please try again.');
       toast.error('Failed to disconnect wallet');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleRetryConnection = () => {
+    // Reset error state
+    setConnectionError(null);
+    // Force refresh to retry connection
+    router.refresh();
   };
 
   return (
@@ -649,7 +692,9 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
                   ? 'default'
                   : connectionStatus === 'error'
                     ? 'destructive'
-                    : 'secondary'
+                    : connectionStatus === 'connecting'
+                      ? 'secondary'
+                      : 'secondary'
             }
           >
             {initialLoad
@@ -658,7 +703,9 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
                 ? 'Connected'
                 : connectionStatus === 'error'
                   ? 'Error'
-                  : 'Disconnected'}
+                  : connectionStatus === 'connecting'
+                    ? 'Connecting...'
+                    : 'Disconnected'}
           </Badge>
         </div>
       </div>
@@ -726,9 +773,12 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
         )}
       </div>
 
-      {connectionStatus === 'error' && (
+      {connectionError && (
         <div className="text-sm text-destructive">
-          There was an error with your wallet connection. Please try again.
+          {connectionError}
+          <Button variant="link" onClick={handleRetryConnection}>
+            Retry
+          </Button>
         </div>
       )}
     </div>

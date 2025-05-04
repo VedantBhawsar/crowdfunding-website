@@ -194,6 +194,8 @@ model Backers {
   user        User     @relation("UserBackings", fields: [userId], references: [id], onDelete: Cascade)
   campaignId  String   @mongodb.ObjectId
   campaign    Campaign @relation("CampaignBackers", fields: [campaignId], references: [id], onDelete: Cascade)
+  rewardId    String?  @mongodb.ObjectId
+  reward      Reward?  @relation("RewardBackers", fields: [rewardId], references: [id], onDelete: SetNull)
   amount      Float
   isAnonymous Boolean  @default(false)
   createdAt   DateTime @default(now())
@@ -202,6 +204,7 @@ model Backers {
   @@unique([userId, campaignId])
   @@index([userId])
   @@index([campaignId])
+  @@index([rewardId])
 }
 
 model Milestone {
@@ -240,6 +243,8 @@ model Reward {
   campaign              Campaign      @relation("CampaignRewards", fields: [campaignId], references: [id], onDelete: Cascade)
   maxClaimable          Int? // Optional limit on how many can be claimed
   claimed               Int           @default(0)
+  readyForClaimAt       DateTime?
+  backers               Backers[]     @relation("RewardBackers")
   image                 String?
   shippingRequired      Boolean       @default(false)
   estimatedShippingCost Float?
@@ -287,12 +292,12 @@ model VerificationToken {
 }
 
 model UserOrg {
-  id             String       @id @default(auto()) @map("_id") @mongodb.ObjectId
-  userId         String       @mongodb.ObjectId
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           OrgRole      @default(MEMBER)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id        String   @id @default(auto()) @map("_id") @mongodb.ObjectId
+  userId    String   @mongodb.ObjectId
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      OrgRole  @default(MEMBER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId])
   @@index([role])

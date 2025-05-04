@@ -40,6 +40,8 @@ import Link from 'next/link';
 import { PledgeModal } from '@/components/campaign/PledgeModal'; // Adjust path
 import { useAccount } from 'wagmi'; //
 import { toast } from 'sonner';
+import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 // Extend the Campaign interface to include related models
 // In CampaignPage.tsx
@@ -69,31 +71,38 @@ export default function CampaignPage() {
   const [error, setError] = useState<string | null>(null);
   const [isPledgeModalOpen, setIsPledgeModalOpen] = useState(false);
   const [selectedRewardForPledge, setSelectedRewardForPledge] = useState<Reward | null>(null);
+  const [claimingReward, setClaimingReward] = useState(false);
+  const [claimSuccess, setClaimSuccess] = useState(false);
   const { isConnected } = useAccount();
   const campaignSlug = params.campaignSlug as string;
+  const searchParams = useSearchParams();
+  const claimRewardId = searchParams.get('claim');
+  const {data: session} = useSession()
+
+  // Function to handle pledge success
+  function handlePledgeSuccess() {
+    // Refetch campaign data or update state locally after successful pledge recording
+    console.log('Pledge successful, refetching campaign data...');
+    // Simple reload for now, could implement smarter state update
+    window.location.reload();
+  }
+
+  // Function to open pledge modal
+  function openPledgeModal(reward: Reward | null = null) {
+    if (!isConnected) {
+      toast.error('Please connect your wallet to back this project.');
+      // Optionally trigger wallet connection here
+      return;
+    }
+    setSelectedRewardForPledge(reward);
+    setIsPledgeModalOpen(true);
+  }
 
   useEffect(() => {
     if (!campaignSlug) {
       setError('Campaign slug not found.');
       setIsLoading(false);
       return;
-    }
-
-    function handlePledgeSuccess() {
-      // Refetch campaign data or update state locally after successful pledge recording
-      console.log('Pledge successful, refetching campaign data...');
-      // Simple reload for now, could implement smarter state update
-      window.location.reload();
-    }
-
-    function openPledgeModal(reward: Reward | null = null) {
-      if (!isConnected) {
-        toast.error('Please connect your wallet to back this project.');
-        // Optionally trigger wallet connection here
-        return;
-      }
-      setSelectedRewardForPledge(reward);
-      setIsPledgeModalOpen(true);
     }
 
     const fetchCampaign = async () => {
@@ -113,6 +122,15 @@ export default function CampaignPage() {
         }
 
         setCampaign(data);
+
+        // Check if there's a reward to claim from the URL
+        if (claimRewardId && data.rewards) {
+          const rewardToClaim = data.rewards.find((reward: Reward) => reward.id === claimRewardId);
+          if (rewardToClaim && rewardToClaim.claimed === 1) {
+            // Show claim UI
+            handleClaimReward(rewardToClaim);
+          }
+        }
       } catch (err) {
         console.error('Error fetching campaign:', err);
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
@@ -122,7 +140,49 @@ export default function CampaignPage() {
     };
 
     fetchCampaign();
-  }, [campaignSlug]); // Depend on campaignSlug
+  }, [campaignSlug, claimRewardId]); // Depend on campaignSlug and claimRewardId
+
+  // Handle reward claiming
+  const handleClaimReward = async (reward: Reward) => {
+    if (!isConnected) {
+      toast.error('Please connect your wallet to claim this reward.');
+      return;
+    }
+
+    try {
+      setClaimingReward(true);
+
+      // Call API to mark reward as claimed by user
+      const response = await fetch(`/api/rewards/claim/${reward.id}`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Failed to claim reward (${response.status})`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setClaimSuccess(true);
+        toast.success('Reward claimed successfully!');
+        // Refresh campaign data
+        window.location.reload();
+      } else {
+        throw new Error(data.message || 'Failed to claim reward');
+      }
+    } catch (err) {
+      console.error('Error claiming reward:', err);
+      toast.error(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      setClaimingReward(false);
+    }
+  };
+
+  async function handleVote() {
+
+  }
 
   // --- Derived Data Calculations ---
   const calculateDaysLeft = (createdAt: Date | string, durationDays: number): number => {
@@ -140,7 +200,7 @@ export default function CampaignPage() {
     ? Math.min(100, Math.round((campaign.raisedAmount / campaign.goal) * 100))
     : 0;
 
-    // TODO: Add logic for campaigns with a target date
+  // TODO: Add logic for campaigns with a target date
   const daysLeft = campaign ? calculateDaysLeft(campaign.createdAt, 0) : 0;
 
   // --- Render Logic ---
@@ -154,11 +214,14 @@ export default function CampaignPage() {
 
   if (error) {
     return (
-      <div className="container mx-auto max-w-3xl py-12 text-center">
-        <h1 className="text-2xl font-semibold text-destructive mb-4">Error Loading Campaign</h1>
-        <p className="text-muted-foreground mb-6">{error}</p>
-        <Button onClick={() => router.back()} variant="outline">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+      <div className="flex h-[70vh] w-full flex-col items-center justify-center space-y-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-destructive">Error Loading Campaign</h2>
+          <p className="mt-2 text-muted-foreground">{error}</p>
+        </div>
+        <Button onClick={() => router.push('/campaigns')} variant="outline">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Campaigns
         </Button>
       </div>
     );
@@ -166,13 +229,14 @@ export default function CampaignPage() {
 
   if (!campaign) {
     return (
-      <div className="container mx-auto max-w-3xl py-12 text-center">
-        <h1 className="text-2xl font-semibold mb-4">Campaign Not Found</h1>
-        <p className="text-muted-foreground mb-6">
-          The campaign you are looking for does not exist or could not be loaded.
-        </p>
-        <Button onClick={() => router.back()} variant="outline">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+      <div className="flex h-[70vh] w-full flex-col items-center justify-center space-y-4">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Campaign Not Found</h2>
+          <p className="mt-2 text-muted-foreground">The campaign you&apos;re looking for doesn&apos;t exist.</p>
+        </div>
+        <Button onClick={() => router.push('/campaigns')} variant="outline">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Campaigns
         </Button>
       </div>
     );
@@ -185,6 +249,19 @@ export default function CampaignPage() {
       <Button onClick={() => router.back()} variant="outline" size="sm" className="mb-6">
         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Campaigns
       </Button>
+
+      {/* Pledge Modal - place it at the component level, not inside each card */}
+      {campaign && (
+        <PledgeModal
+          isOpen={isPledgeModalOpen}
+          onOpenChange={setIsPledgeModalOpen}
+          campaignId={campaign.id}
+          campaignTitle={campaign.title}
+          creatorWalletAddress={campaign.creatorWalletAddress || null}
+          selectedReward={selectedRewardForPledge}
+          onSuccess={handlePledgeSuccess}
+        />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         {/* Main Content Area */}
@@ -363,8 +440,8 @@ export default function CampaignPage() {
                             <Coins className="h-3 w-3 text-primary" />
                             <span>Funding: {milestone.fundingAmount} ETH</span>
                           </div>
-                          {milestone?.status !== 'COMPLETED' && (
-                            <Button variant="outline" size="sm" className="h-7 text-xs">
+                          {milestone?.status !== 'COMPLETED' && campaign.backers?.some(backer => backer.userId === session?.user.id) && (
+                            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleVote}>
                               <Vote className="h-3 w-3 mr-1" />
                               Vote to Release
                             </Button>
@@ -396,30 +473,7 @@ export default function CampaignPage() {
               <TabsContent value="rewards_tab" className="space-y-4">
                 <h3 className="text-xl font-semibold">Available Rewards</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {campaign.rewards.map((reward, index) => (
-                    <Card key={reward.id || index} className="bg-card/50">
-                      <CardHeader>
-                        <CardTitle className="text-lg">{reward.title}</CardTitle>
-                        <CardDescription className="font-semibold text-primary pt-1">
-                          Pledge {reward.amount} ETH or more
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm text-muted-foreground mb-3">{reward.description}</p>
-                        {reward.deliveryDate && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Calendar className="h-3 w-3" /> Estimated Delivery:{' '}
-                            {format(new Date(reward.deliveryDate), 'MMM yyyy')}
-                          </p>
-                        )}
-                      </CardContent>
-                      <CardFooter>
-                        <Button size="sm" className="w-full">
-                          Select Reward
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+                  {campaign.rewards.map((reward, index) => renderRewardCard(reward, index))}
                 </div>
               </TabsContent>
             )}
@@ -456,32 +510,22 @@ export default function CampaignPage() {
               </div>
             </CardContent>
             <CardFooter className="bg-muted/50 p-4">
-              {/* TODO: Add actual pledge functionality */}
-              <Card className="overflow-hidden shadow-md">
-                {/* ... CardContent ... */}
-                <CardFooter className="bg-muted/50 p-4">
-                  <Card className="overflow-hidden shadow-md">
-                    {/* ... CardContent ... */}
-                    <CardFooter className="bg-muted/50 p-4">
-                      <Button
-                        size="lg"
-                        className="w-full font-semibold"
-                        onClick={() => {
-                          if (!isConnected) {
-                            toast.error('Please connect your wallet to back this project.');
-                            return;
-                          }
-                          setSelectedRewardForPledge(null);
-                          setIsPledgeModalOpen(true);
-                        }}
-                        disabled={!isConnected || campaign?.status !== 'ACTIVE'} // Disable if not connected or campaign inactive
-                      >
-                        {isConnected ? 'Back This Project' : 'Connect Wallet to Back'}
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                </CardFooter>
-              </Card>
+              {/* Pledge button */}
+              <Button
+                size="lg"
+                className="w-full font-semibold"
+                onClick={() => {
+                  if (!isConnected) {
+                    toast.error('Please connect your wallet to back this project.');
+                    return;
+                  }
+                  setSelectedRewardForPledge(null);
+                  setIsPledgeModalOpen(true);
+                }}
+                disabled={!isConnected || campaign?.status !== 'ACTIVE'} // Disable if not connected or campaign inactive
+              >
+                {isConnected ? 'Back This Project' : 'Connect Wallet to Back'}
+              </Button>
             </CardFooter>
           </Card>
 
@@ -502,172 +546,85 @@ export default function CampaignPage() {
           {campaign.rewards && campaign.rewards.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Rewards</h3>
-              {campaign.rewards.map((reward, index) => (
-                <Card
-                  key={reward.id || index}
-                  className="bg-card/50 border hover:border-primary transition-colors"
-                >
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">{reward.title}</CardTitle>
-                    <CardDescription className="font-medium text-primary pt-1">
-                      Pledge {reward.amount} ETH or more
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-sm text-muted-foreground space-y-2">
-                    <p>{reward.description}</p>
-                    {reward.deliveryDate && (
-                      <p className="text-xs flex items-center gap-1">
-                        <Calendar className="h-3 w-3" /> Est. Delivery:{' '}
-                        {format(new Date(reward.deliveryDate), 'MMM yyyy')}
-                      </p>
-                    )}
-                  </CardContent>
-                  <CardFooter>
-                    {/* TODO: Add select reward functionality */}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="w-full"
-                      onClick={function () {
-                        if (!isConnected) {
-                          toast.error('Please connect your wallet to back this project.');
-                          // Optionally trigger wallet connection here
-                          return;
-                        }
-                        setSelectedRewardForPledge(reward);
-                        setIsPledgeModalOpen(true);
-                      }} // Open modal with this reward
-                      disabled={
-                        !isConnected ||
-                        campaign?.status !== 'ACTIVE' ||
-                        (reward.maxClaimable !== null && reward.claimed >= reward.maxClaimable)
-                      }
-                    >
-                      {reward.maxClaimable !== null && reward.claimed >= reward.maxClaimable
-                        ? 'Fully Claimed'
-                        : 'Select This Reward'}
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {/* Social Links */}
-          <div className="space-y-2 pt-4">
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-              Project Links
-            </h3>
-            <div className="flex flex-wrap gap-3">
-              <TooltipProvider>
-                {campaign.website && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={campaign.website} target="_blank" rel="noopener noreferrer">
-                          <Globe className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Website</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {campaign.twitter && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={campaign.twitter} target="_blank" rel="noopener noreferrer">
-                          <Twitter className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Twitter / X</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {campaign.github && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={campaign.github} target="_blank" rel="noopener noreferrer">
-                          <Github className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>GitHub</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {campaign.linkedin && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={campaign.linkedin} target="_blank" rel="noopener noreferrer">
-                          <Linkedin className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>LinkedIn</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {campaign.instagram && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="icon" asChild>
-                        <a href={campaign.instagram} target="_blank" rel="noopener noreferrer">
-                          <Instagram className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Instagram</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </TooltipProvider>
-            </div>
-          </div>
-
-          {/* --- PLEDGE MODAL --- */}
-          {campaign && (
-            <PledgeModal
-              isOpen={isPledgeModalOpen}
-              onOpenChange={setIsPledgeModalOpen}
-              campaignId={campaign.id}
-              campaignTitle={campaign.title}
-              creatorWalletAddress={campaign.creatorWalletAddress || null} // Use the address fetched earlier
-              selectedReward={selectedRewardForPledge}
-              onSuccess={() => {
-                console.log('Pledge successful, refetching campaign data...');
-                // Simple reload for now, could implement smarter state update
-                window.location.reload();
-              }}
-            />
-          )}
-
-          {/* Tags */}
-          {campaign.tags && campaign.tags.length > 0 && (
-            <div className="space-y-2 pt-4">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                Tags
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {campaign.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
+              {campaign.rewards.map((reward, index) => renderRewardCard(reward, index))}
             </div>
           )}
         </div>
       </div>
     </div>
   );
+
+  // Helper function to render reward cards
+  function renderRewardCard(reward: Reward, index: number) {
+    // Check if the reward is ready to be claimed (claimed status is 1)
+    const isClaimable = reward.claimed === 1;
+    // Check if the reward has been fully claimed (claimed status is 2)
+    const isClaimed = reward.claimed === 2;
+
+    return (
+      <Card key={reward.id || index} className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">{reward.title}</CardTitle>
+          <div className="flex items-center justify-between">
+            <Badge variant="outline" className="font-normal">
+              {new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              }).format(reward.amount)}
+            </Badge>
+            {isClaimable && (
+              <Badge className="bg-green-500 text-white">
+                Ready to Claim
+              </Badge>
+            )}
+            {isClaimed && (
+              <Badge className="bg-blue-500 text-white">
+                Claimed
+              </Badge>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent className="pb-3">
+          <p className="text-sm text-muted-foreground">{reward.description}</p>
+          {reward.deliveryDate && (
+            <div className="mt-2 flex items-center text-xs text-muted-foreground">
+              <Calendar className="mr-1 h-3 w-3" />
+              Estimated delivery: {format(new Date(reward.deliveryDate), 'MMMM yyyy')}
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="pt-0">
+          {isClaimable ? (
+            <Button
+              onClick={() => handleClaimReward(reward)}
+              className="w-full"
+              disabled={claimingReward}
+            >
+              {claimingReward ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Claiming...
+                </>
+              ) : (
+                'Claim Reward'
+              )}
+            </Button>
+          ) : isClaimed ? (
+            <Button variant="outline" className="w-full" disabled>
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Claimed
+            </Button>
+          ) : (
+            <Button
+              onClick={() => openPledgeModal(reward)}
+              variant="outline"
+              className="w-full"
+            >
+              Select
+            </Button>
+          )}
+        </CardFooter>
+      </Card>
+    );
+  }
 }
