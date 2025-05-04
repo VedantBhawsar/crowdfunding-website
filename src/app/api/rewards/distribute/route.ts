@@ -53,8 +53,8 @@ class SendMail {
       secure: true,
       auth: {
         // TODO: convert this to env variables
-        user: 'vedantbhavsar.a10@gmail.com',
-        pass: 'sllj itjq bkdp hdsz',
+        user: process.env.NODEMAILER_EMAIL!,
+        pass: process.env.NODEMAILER_PASSWORD!,
       },
     });
   }
