@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
       // 5. Create Activity Log
       await txPrisma.activity.create({
         data: {
-          type: 'contribution',
+          type: 'CONTRIBUTION',
           description: `${session.user.name || 'A user'} contributed ${amount} ETH.`,
           campaignId: campaignId,
           userId: userId,

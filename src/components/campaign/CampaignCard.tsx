@@ -52,11 +52,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
 
   // Determine display for time left or status
   const timeDisplay =
-    campaign.status === CampaignStatus.ACTIVE &&
-      campaign.daysLeft !== null &&
-      campaign.daysLeft >= 0 ? (
-      `${campaign.daysLeft} days left`
-    ) : (
+    campaign.status === CampaignStatus.ACTIVE && (
       <Badge variant={getStatusVariant(campaign.status)} className="capitalize">
         {campaign.status.toLowerCase()}
       </Badge>

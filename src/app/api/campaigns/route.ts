@@ -41,9 +41,11 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    if (categories?.length) {
-      where.category = { in: categories };
-    }
+    // if (categories?.length) {
+    //   where.category = { in: 
+    //     categories
+    //    };
+    // }
 
     const validStatuses = statuses.filter((s): s is CampaignStatus =>
       Object.values(CampaignStatus).includes(s)

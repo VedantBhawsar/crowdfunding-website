@@ -117,7 +117,6 @@ export async function POST(req: Request) {
         shortDescription: campaignData.shortDescription,
         description: campaignData.description,
         goal: campaignData.goal,
-        durationDays: campaignData.durationDays,
         category: campaignData.category,
         images: campaignData.images,
         tags: campaignData.tags ? campaignData.tags.split(',') : [],
@@ -130,7 +129,8 @@ export async function POST(req: Request) {
         creatorName: user.displayName || user.name || 'Anonymous Creator',
         creatorAvatar: user.image || '/api/placeholder/150/150',
         raisedAmount: 0,
-        daysLeft: campaignData.durationDays,
+        endDate: campaignData.durationDays,
+        startDate: new Date(),
         creatorId: user.id,
       },
     });
