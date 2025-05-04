@@ -139,7 +139,9 @@ export default function CampaignPage() {
   const progressPercentage = campaign
     ? Math.min(100, Math.round((campaign.raisedAmount / campaign.goal) * 100))
     : 0;
-  const daysLeft = campaign ? calculateDaysLeft(campaign.createdAt, campaign.durationDays) : 0;
+
+    // TODO: Add logic for campaigns with a target date
+  const daysLeft = campaign ? calculateDaysLeft(campaign.createdAt, 0) : 0;
 
   // --- Render Logic ---
   if (isLoading) {
