@@ -51,12 +51,11 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     campaign.goal > 0 ? Math.min((campaign.raisedAmount / campaign.goal) * 100, 100) : 0;
 
   // Determine display for time left or status
-  const timeDisplay =
-    campaign.status === CampaignStatus.ACTIVE && (
-      <Badge variant={getStatusVariant(campaign.status)} className="capitalize">
-        {campaign.status.toLowerCase()}
-      </Badge>
-    );
+  const timeDisplay = campaign.status === CampaignStatus.ACTIVE && (
+    <Badge variant={getStatusVariant(campaign.status)} className="capitalize">
+      {campaign.status.toLowerCase()}
+    </Badge>
+  );
 
   const fallbackAvatar = campaign.creatorName ? campaign.creatorName.charAt(0).toUpperCase() : 'C';
 
@@ -95,7 +94,10 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
             {/* Image Section */}
             <div className="relative w-full aspect-video overflow-hidden">
               <Image
-                src={campaign.images?.[0] || '/placeholder-image.png'} // Use first image or a placeholder
+                src={
+                  campaign.images?.[0] ||
+                  'https://plus.unsplash.com/premium_photo-1677341558055-832134a85ad6?q=80&w=1760&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+                } // Use first image or a placeholder
                 alt={campaign.title}
                 fill // Use fill for responsive aspect ratio defined by parent
                 style={{ objectFit: 'cover' }} // Crop image to cover area
@@ -109,7 +111,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
 
             {/* Content Section */}
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold leading-tight group-hover:text-primary transition-colors truncate">
+              <CardTitle className="text-lg font-semibold leading-tight group-hover:text-primary transition-colors truncate cursor-pointer">
                 {campaign.title}
               </CardTitle>
               <p className="text-sm text-muted-foreground line-clamp-2 h-[40px]">

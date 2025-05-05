@@ -9,20 +9,11 @@ import { useDebounce } from 'use-debounce';
 // import { AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// Card components are not directly used here, only in CampaignCard, can be removed if not needed elsewhere
-// import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-// Progress is not directly used here, only in CampaignCard, can be removed if not needed elsewhere
-// import { Progress } from '@/components/ui/progress';
 import { Search, Loader2, AlertCircle } from 'lucide-react';
-// Badge is not directly used here, only potentially in CampaignCard/FilterModel, can be removed if not needed elsewhere
-// import { Badge } from '@/components/ui/badge';
 import CampaignFilterModel, { FilterState } from '@/components/campaign/CampaignFilterModel';
-// date-fns functions are not used directly here, only potentially in CampaignCard, can be removed if not needed elsewhere
-// import { addDays, differenceInDays, isPast } from 'date-fns';
 import CampaignCard from '@/components/campaign/CampaignCard';
 import { create as createZustand } from 'zustand';
 
-// Interface representing a Campaign with potential backer count
 interface CampaignWithCounts extends Campaign {
   _count?: {
     backers: number;
@@ -67,7 +58,7 @@ interface CampaignStoreState {
   resetForNewQuery: () => void; // Helper action to reset state
 }
 
-const useStore = createZustand<CampaignStoreState>((set) => ({
+const useStore = createZustand<CampaignStoreState>(set => ({
   campaigns: [],
   isInitialLoading: true,
   hasMore: true,
@@ -76,17 +67,17 @@ const useStore = createZustand<CampaignStoreState>((set) => ({
   searchTerm: '',
   filters: defaultFilters,
   page: 1,
-  setCampaigns: (campaigns) => set({ campaigns }),
+  setCampaigns: campaigns => set({ campaigns }),
   // Correctly appends new campaigns to the existing list
-  appendCampaigns: (newCampaigns) =>
-    set((state) => ({ campaigns: [...state.campaigns, ...newCampaigns] })),
-  setIsInitialLoading: (isLoading) => set({ isInitialLoading: isLoading }),
-  setHasMore: (hasMore) => set({ hasMore }),
-  setIsLoadingMore: (isLoading) => set({ isLoadingMore: isLoading }),
-  setError: (error) => set({ error }),
-  setSearchTerm: (term) => set({ searchTerm: term }),
-  setFilters: (filters) => set({ filters }),
-  setPage: (page) => set({ page }),
+  appendCampaigns: newCampaigns =>
+    set(state => ({ campaigns: [...state.campaigns, ...newCampaigns] })),
+  setIsInitialLoading: isLoading => set({ isInitialLoading: isLoading }),
+  setHasMore: hasMore => set({ hasMore }),
+  setIsLoadingMore: isLoading => set({ isLoadingMore: isLoading }),
+  setError: error => set({ error }),
+  setSearchTerm: term => set({ searchTerm: term }),
+  setFilters: filters => set({ filters }),
+  setPage: page => set({ page }),
   resetForNewQuery: () => set({ campaigns: [], page: 1, hasMore: true, error: null }),
 }));
 // --- End of Zustand Store Definition ---
@@ -154,7 +145,9 @@ const CampaignsPage = () => {
         }
         const result: CampaignsApiResponse = await response.json();
 
-        console.log(`Received page ${result.currentPage}, hasMore: ${result.hasMore}, data count: ${result.data.length}`); // Debug log
+        console.log(
+          `Received page ${result.currentPage}, hasMore: ${result.hasMore}, data count: ${result.data.length}`
+        ); // Debug log
 
         // Update state using Zustand actions
         if (pageNum === 1) {
@@ -164,15 +157,14 @@ const CampaignsPage = () => {
         }
         setHasMore(result.hasMore);
         storeSetPage(pageNum); // Update the current page number in the store
-
       } catch (err) {
         console.error('Error fetching campaigns:', err);
         const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
         setError(errorMessage);
         // If initial load fails, ensure campaigns are empty
         if (isInitialLoad) {
-           storeSetCampaigns([]);
-           setHasMore(false); // Stop trying to load more if initial fails
+          storeSetCampaigns([]);
+          setHasMore(false); // Stop trying to load more if initial fails
         }
         // Don't automatically clear campaigns on subsequent load errors
       } finally {
@@ -183,7 +175,19 @@ const CampaignsPage = () => {
         }
       }
     },
-    [baseQueryParams, storeSetCampaigns, storeAppendCampaigns, setIsInitialLoading, setIsLoadingMore, setError, setHasMore, storeSetPage, isLoadingMore, hasMore, error] // Include dependencies
+    [
+      baseQueryParams,
+      storeSetCampaigns,
+      storeAppendCampaigns,
+      setIsInitialLoading,
+      setIsLoadingMore,
+      setError,
+      setHasMore,
+      storeSetPage,
+      isLoadingMore,
+      hasMore,
+      error,
+    ] // Include dependencies
   );
 
   // Effect to fetch initial data or refetch when filters/search change
@@ -197,7 +201,7 @@ const CampaignsPage = () => {
   // Effect for infinite scrolling using IntersectionObserver
   useEffect(() => {
     const observer = new IntersectionObserver(
-      (entries) => {
+      entries => {
         const target = entries[0];
         // Trigger fetch only if intersecting, there's more data, and not already loading
         if (target.isIntersecting && hasMore && !isLoadingMore && !isInitialLoading) {
@@ -266,7 +270,9 @@ const CampaignsPage = () => {
       </div>
 
       {/* Content Area: Loading, Error, No Results, or Campaign Grid */}
-      <div className="min-h-[40vh]"> {/* Ensure minimum height */}
+      <div className="min-h-[40vh]">
+        {' '}
+        {/* Ensure minimum height */}
         {isInitialLoading ? (
           <div className="flex justify-center items-center h-full pt-16">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -274,7 +280,9 @@ const CampaignsPage = () => {
         ) : error && campaigns.length === 0 ? ( // Show critical error only if initial load failed
           <div className="text-center py-10 px-4 border border-destructive/50 bg-destructive/10 rounded-lg">
             <AlertCircle className="mx-auto h-10 w-10 text-destructive mb-3" />
-            <h2 className="text-xl font-semibold text-destructive mb-2">Failed to load campaigns</h2>
+            <h2 className="text-xl font-semibold text-destructive mb-2">
+              Failed to load campaigns
+            </h2>
             <p className="text-destructive/80 mb-4">{error}</p>
             <Button variant="destructive" onClick={() => fetchCampaignsForPage(1, true)}>
               Try Again
@@ -284,13 +292,15 @@ const CampaignsPage = () => {
           <div className="text-center py-10 px-4 border border-dashed rounded-lg h-full flex flex-col justify-center items-center">
             <Search className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <h2 className="text-xl font-semibold text-muted-foreground">No Campaigns Found</h2>
-            <p className="text-muted-foreground/80 mt-2">Try adjusting your search or filter criteria.</p>
+            <p className="text-muted-foreground/80 mt-2">
+              Try adjusting your search or filter criteria.
+            </p>
           </div>
         ) : (
-           // Display Campaign Grid
+          // Display Campaign Grid
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaigns.map((campaign) => (
+              {campaigns.map(campaign => (
                 <CampaignCard campaign={campaign} key={`${campaign.id}-${campaign.createdAt}`} /> // Use a more stable key if possible
               ))}
             </div>
