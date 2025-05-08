@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/config/auth';
 import prismaClient from '@/lib/prismadb';
 import { z } from 'zod';
-import { Milestone, Reward } from '@prisma/client';
+import { Milestone, Reward, CampaignStatus } from '@prisma/client';
 
 // Campaign validation schema
 const campaignSchema = z.object({
@@ -17,6 +17,8 @@ const campaignSchema = z.object({
   description: z.string().min(50),
   goal: z.number().positive(),
   durationDays: z.number().int().positive().lte(90),
+  scheduledStartDate: z.string().optional(),
+  launchNow: z.boolean().optional(),
   category: z.string(),
   tags: z.string().optional(),
   riskAssessment: z.string().optional(),
@@ -109,6 +111,30 @@ export async function POST(req: Request) {
     // Prepare social links
     const socialLinks = campaignData.socialLinks || {};
 
+    // Determine campaign status and start date based on launchNow and scheduledStartDate
+    const now = new Date();
+    let startDate = now;
+    let status: CampaignStatus = CampaignStatus.DRAFT;
+    
+    // If launchNow is true or not provided, set status to ACTIVE and start date to now
+    if (campaignData.launchNow === true || campaignData.launchNow === undefined) {
+      status = CampaignStatus.ACTIVE;
+      startDate = now;
+    } 
+    // If scheduledStartDate is provided and it's in the future, set status to DRAFT
+    else if (campaignData.scheduledStartDate) {
+      const scheduledDate = new Date(campaignData.scheduledStartDate);
+      startDate = scheduledDate;
+      
+      // If scheduled date is today or in the past, set status to ACTIVE
+      if (scheduledDate <= now) {
+        status = CampaignStatus.ACTIVE;
+      }
+    }
+    
+    // Calculate end date based on start date and duration
+    const endDate = new Date(startDate.getTime() + campaignData.durationDays * 24 * 60 * 60 * 1000);
+
     // Create campaign without milestones and rewards first
     const campaign = await prismaClient.campaign.create({
       data: {
@@ -129,10 +155,10 @@ export async function POST(req: Request) {
         creatorName: user.displayName || user.name || 'Anonymous Creator',
         creatorAvatar: user.image || '/api/placeholder/150/150',
         raisedAmount: 0,
-        startDate: new Date(),
-        // Calculate proper endDate by adding durationDays to startDate
-        endDate: new Date(Date.now() + campaignData.durationDays * 24 * 60 * 60 * 1000),
+        startDate: startDate,
+        endDate: endDate,
         creatorId: user.id,
+        status: status,
       },
     });
 
@@ -192,11 +218,27 @@ export async function POST(req: Request) {
       });
     }
 
+    // Create activity entry for campaign creation
+    await prismaClient.activity.create({
+      data: {
+        type: 'CAMPAIGN_CREATED',
+        description: `Campaign "${campaign.title}" was created`,
+        campaignId: campaign.id,
+        userId: user.id,
+        metadata: {
+          status: campaign.status,
+          startDate: campaign.startDate,
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
       message: 'Campaign created successfully',
       slug: campaign.slug,
       id: campaign.id,
+      status: campaign.status,
+      startDate: campaign.startDate,
     });
   } catch (error) {
     console.error('Error creating campaign:', error);

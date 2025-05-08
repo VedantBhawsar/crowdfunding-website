@@ -3,6 +3,18 @@
     {
       "path": "/api/rewards/distribute",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/update-campaigns",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/update-rewards",
+      "schedule": "30 1 * * *"
+    },
+    {
+      "path": "/api/cron/update-milestones",
+      "schedule": "0 2 * * *"
     }
   ]
 }

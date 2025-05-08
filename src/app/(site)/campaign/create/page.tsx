@@ -7,8 +7,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useSession } from 'next-auth/react';
 import { CldUploadButton } from 'next-cloudinary';
-import { X, Plus, Info, Calendar, Loader2, FileImage } from 'lucide-react'; // Added Loader2
-
+import { X, Plus, Info, Loader2, FileImage, CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -36,6 +35,9 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 
 // Define the milestone schema with completion percentage
 // Mark the object itself as required if it exists in the array
@@ -76,6 +78,8 @@ const formSchema = z.object({
     .number({ required_error: 'Please enter a valid campaign duration' })
     .min(1)
     .max(90),
+  scheduledStartDate: z.date().optional(),
+  launchNow: z.boolean().default(true),
   category: z.string({ required_error: 'Please select a category' }),
   tags: z.string().optional(),
   rewards: z.array(rewardSchema).optional(),
@@ -133,13 +137,14 @@ const CATEGORIES = [
 ];
 
 export default function CreateCampaignPage() {
-  const { data: session } = useSession();
-  console.log(session?.user);
   const router = useRouter();
-  const [images, setImages] = useState<File[]>([]);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
+  const { data: session, status } = useSession();
+
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
+  const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
+  const [submitting, setSubmitting] = useState(false);
 
   // Initialize state with correct types
   const [rewardsData, setRewardsData] = useState<RewardType[]>([]);
@@ -147,7 +152,7 @@ export default function CreateCampaignPage() {
     { title: '', description: '', targetDate: '', completionPercentage: 0 },
   ]);
 
-  // Initialize the form
+  // Initialize form with react-hook-form and zod validation
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -155,12 +160,14 @@ export default function CreateCampaignPage() {
       slug: '',
       shortDescription: '',
       description: '',
-      goal: 1,
+      goal: 0,
       durationDays: 30,
+      scheduledStartDate: undefined,
+      launchNow: true,
       category: '',
       tags: '',
       rewards: [],
-      milestones: [{ title: '', description: '', targetDate: '', completionPercentage: 0 }],
+      milestones: [],
       riskAssessment: '',
       socialLinks: {
         website: '',
@@ -179,25 +186,25 @@ export default function CreateCampaignPage() {
 
   // Effect for redirect and cleanup
   useEffect(() => {
-    if (session && session.user && session.user.role !== 'CREATOR') {
+    if (status === 'unauthenticated') {
       toast.error('Only creators can create campaigns');
       router.push('/campaigns');
     }
-    return () => {
-      imageUrls.forEach(url => URL.revokeObjectURL(url));
-    };
-  }, [session, router, imageUrls]);
+
+    // No need to revoke object URLs for Cloudinary URLs
+    return () => {};
+  }, [status, router]);
 
   // --- Image Handling ---
   const handleImageUpload = (result: any) => {
     if (result.info.secure_url) {
-      setImageUrls(prev => [...prev, result.info.secure_url]);
+      setUploadedImages(prev => [...prev, result.info.secure_url]);
     }
   };
 
   const removeImage = (index: number) => {
-    const newImageUrls = imageUrls.filter((_, i) => i !== index);
-    setImageUrls(newImageUrls);
+    const newImageUrls = uploadedImages.filter((_, i) => i !== index);
+    setUploadedImages(newImageUrls);
   };
 
   // --- Tag Handling ---
@@ -331,21 +338,25 @@ export default function CreateCampaignPage() {
   };
 
   // --- Form Submission (Using RHF's handler) ---
-  const onSubmit = async (data: FormValues) => {
-    if (!session?.user?.id) {
-      toast.error('Please connect your wallet to create a campaign.');
+  async function onSubmit(data: FormValues) {
+    if (status !== 'authenticated') {
+      toast.error('You must be logged in to create a campaign');
       return;
     }
 
+    setSubmitting(true);
+
     try {
-      // Clean up and create a campaign data object with all required data
+      // Prepare data for API
       const campaignData = {
         ...data,
-        images: imageUrls,
+        images: uploadedImages,
         tags: tags.join(','),
-        milestones: milestonesData.filter(m => m.title && m.description),
-        rewards: rewardsData.filter(r => r.title && r.description),
+        // If launchNow is true, don't send scheduledStartDate
+        scheduledStartDate: data.launchNow ? undefined : data.scheduledStartDate,
       };
+
+      // Send to API
       const response = await fetch('/api/campaigns/create', {
         method: 'POST',
         headers: {
@@ -366,11 +377,13 @@ export default function CreateCampaignPage() {
     } catch (error) {
       console.error('Error creating campaign:', error);
       toast.error(error instanceof Error ? error.message : 'An unknown error occurred.');
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }
 
   // --- Render Logic ---
-  if (!session) {
+  if (status !== 'authenticated') {
     return (
       <div className="flex h-[60vh] w-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -527,6 +540,87 @@ export default function CreateCampaignPage() {
                     </FormItem>
                   )}
                 />
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium">Launch Settings</h3>
+                <FormField
+                  control={form.control}
+                  name="launchNow"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 mt-1"
+                          checked={field.value}
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                            if (e.target.checked) {
+                              form.setValue('scheduledStartDate', undefined);
+                              setScheduledDate(undefined);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>
+                          Launch campaign immediately
+                        </FormLabel>
+                        <FormDescription>
+                          If unchecked, you can schedule a future launch date
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                {!form.watch('launchNow') && (
+                  <FormField
+                    control={form.control}
+                    name="scheduledStartDate"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Schedule Launch Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={"w-full pl-3 text-left font-normal"}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={(date) => {
+                                field.onChange(date);
+                                setScheduledDate(date);
+                              }}
+                              disabled={(date) =>
+                                date < new Date(new Date().setHours(0, 0, 0, 0))
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormDescription>
+                          Your campaign will automatically launch on this date
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
               <FormField
                 control={form.control}
@@ -925,27 +1019,26 @@ export default function CreateCampaignPage() {
               <div className="space-y-4">
                 <FormLabel>Campaign Images (Optional)</FormLabel>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {imageUrls.map((url, index) => (
+                  {uploadedImages.map((url, index) => (
                     <div
                       key={index}
-                      className="relative aspect-video rounded-md overflow-hidden border group bg-muted"
+                      className="relative group border rounded-md overflow-hidden h-24 w-24"
                     >
                       <img
                         src={url}
-                        alt={`Visual ${index + 1}`}
-                        className="w-full h-full object-cover"
+                        alt={`Campaign image ${index + 1}`}
+                        className="h-full w-full object-cover"
                       />
                       <button
                         type="button"
-                        className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                         onClick={() => removeImage(index)}
-                        aria-label="Remove image"
+                        className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        <X className="h-3.5 w-3.5" />
+                        <X className="h-5 w-5 text-white" />
                       </button>
                     </div>
                   ))}
-                  {imageUrls.length < 5 && (
+                  {uploadedImages.length < 5 && (
                     <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-md cursor-pointer aspect-video hover:border-primary hover:bg-muted/50 transition-colors text-muted-foreground">
                       <CldUploadButton
                         options={{ maxFiles: 1 }}
@@ -1055,13 +1148,13 @@ export default function CreateCampaignPage() {
               type="button"
               variant="outline"
               onClick={() => router.back()}
-              disabled={isSubmitting}
+              disabled={isSubmitting || submitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Creating...' : 'Create Campaign'}
+            <Button type="submit" disabled={isSubmitting || submitting}>
+              {(isSubmitting || submitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {(isSubmitting || submitting) ? 'Creating...' : 'Create Campaign'}
             </Button>
           </div>
         </form>
