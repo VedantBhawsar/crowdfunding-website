@@ -550,6 +550,14 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
         if (isConnected && connectionStatus !== 'connected') {
           setConnectionStatus('connecting');
         }
+        
+        // Log connection data for debugging
+        console.log('Wallet connection data:', { 
+          isConnected, 
+          address, 
+          caipAddress,
+          storedData: storedWalletData 
+        });
 
         // Only update if there's a change in connection status
         if (
@@ -557,32 +565,72 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
           storedWalletData?.address !== address ||
           storedWalletData?.caipAddress !== caipAddress
         ) {
-          // In a production environment, you would fetch the balance and network ID here
-          const dummyBalance = Math.random() * 10; // Just for demo
-          const networkId = '1'; // Ethereum mainnet
-
-          const response = await fetch('/api/wallet/update', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              address: address || null,
-              isConnected: !!isConnected,
-              caipAddress: caipAddress || null,
-              balance: isConnected ? dummyBalance : 0,
-              networkId: isConnected ? networkId : null,
-              lastTransactionAt: isConnected ? new Date().toISOString() : null,
-              status: isConnected ? 'active' : 'inactive',
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to update wallet status');
+          // Get network information
+          let networkId = '1'; // Default to Ethereum mainnet
+          let balance = 0;
+          
+          if (isConnected && address) {
+            try {
+              // Try to get balance - in a real implementation, you would use ethers.js or viem
+              const { wagmiAdapter } = await import('@/config/wagmi');
+              const { getPublicClient } = await import('@wagmi/core');
+              const publicClient = getPublicClient(wagmiAdapter.wagmiConfig);
+              
+              if (publicClient) {
+                try {
+                  // Get chain ID
+                  const chainId = await publicClient.getChainId();
+                  networkId = chainId.toString();
+                  
+                  // Get balance
+                  const balanceResult = await publicClient.getBalance({ address: address as `0x${string}` });
+                  // Convert from wei to ETH
+                  balance = Number(balanceResult) / 1e18;
+                } catch (e) {
+                  console.error('Error getting chain or balance:', e);
+                  // Use defaults if there's an error
+                }
+              }
+            } catch (e) {
+              console.error('Error getting provider:', e);
+            }
           }
 
-          const data = await response.json();
-          setStoredWalletData(data.data);
+          try {
+            const response = await fetch('/api/wallet/update', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                address: address || null,
+                isConnected: !!isConnected,
+                caipAddress: caipAddress || null,
+                balance: isConnected ? balance : 0,
+                networkId: isConnected ? networkId : null,
+                lastTransactionAt: isConnected ? new Date().toISOString() : null,
+                status: isConnected ? 'active' : 'inactive',
+              }),
+            });
+            
+            const responseData = await response.json();
+            console.log('Wallet update API response:', responseData);
+            
+            if (!response.ok) {
+              // Get detailed error message from response if available
+              const errorMessage = responseData.error || responseData.message || 'Failed to update wallet status';
+              throw new Error(errorMessage);
+            }
+            
+            // Check if the response has a data property, otherwise use the response directly
+            setStoredWalletData(responseData.data || responseData);
+            
+            // Log success for debugging
+            console.log('Wallet update successful:', responseData.data || responseData);
+          } catch (apiError) {
+            console.error('API request error:', apiError);
+            throw apiError; // Re-throw to be caught by the outer catch block
+          }
 
           // Update session with wallet information
           if (isConnected && address) {
@@ -623,6 +671,17 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
   const handleDisconnect = async () => {
     setIsLoading(true);
     try {
+      // Disconnect from wallet
+      try {
+        const { wagmiAdapter } = await import('@/config/wagmi');
+        const { disconnect } = await import('@wagmi/core');
+        
+        // Disconnect all connectors
+        await disconnect(wagmiAdapter.wagmiConfig);
+      } catch (e) {
+        console.error('Error disconnecting wallet:', e);
+      }
+      
       // Update wallet status in database
       const response = await fetch('/api/wallet/update', {
         method: 'POST',

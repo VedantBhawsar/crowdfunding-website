@@ -29,9 +29,25 @@ export default function WalletConnectButton() {
           throw new Error('No wallet connector available');
         }
         
-        const controller= await connector.connect();
-        console.log(controller)
+        // Try to connect with explicit parameters
+        await connector.connect({
+          chainId: 1, // Ethereum mainnet
+        });
+        
+        // Wait a moment for the connection to establish
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Verify connection
+        // @ts-ignore
+        const account = await connector.getAccount();
+        if (!account) {
+          throw new Error('Failed to connect wallet');
+        }
+        
         toast.success('Wallet connected successfully');
+        
+        // Force a page refresh to update the UI
+        window.location.reload();
       } catch (error) {
         console.error('Wallet connection error:', error);
         toast.error('Wallet connection failed. Please try again later.');

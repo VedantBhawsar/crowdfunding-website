@@ -89,7 +89,7 @@ const Navbar = () => {
                 <div className="flex gap-2">
                   <Skeleton className="w-12 h-8" />
                 </div>
-              ) : status !== 'authenticated' ? (
+              ) : status === 'unauthenticated' ? (
                 <div className="flex gap-2">
                   <Link href="/signin">
                     <Button variant="outline" size="sm">
@@ -147,12 +147,12 @@ const Navbar = () => {
                   </motion.li>
                 ))}
                 <div className="flex flex-col gap-2 pt-4">
-                  <Link href="/sign-in">
+                  <Link href="/signin">
                     <Button variant="outline" className="w-full">
                       Sign in
                     </Button>
                   </Link>
-                  <Link href="/sign-up">
+                  <Link href="/signup">
                     <Button className="w-full">Sign up</Button>
                   </Link>
                 </div>

@@ -117,22 +117,19 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Categories from Prisma schema CampaignCategory enum
 const CATEGORIES = [
-  'Technology',
-  'Art',
-  'Music',
-  'Film',
-  'Games',
-  'Food',
-  'Publishing',
-  'Fashion',
-  'Design',
-  'Community',
-  'Education',
-  'Environment',
-  'Health',
-  'Nonprofit',
-  'Social Enterprise',
+  'TECHNOLOGY',
+  'ARTS',
+  'GAMES',
+  'FILM',
+  'MUSIC',
+  'DESIGN',
+  'FOOD',
+  'PUBLISHING',
+  'FASHION',
+  'COMMUNITY',
+  'OTHER'
 ];
 
 export default function CreateCampaignPage() {
@@ -546,9 +543,10 @@ export default function CreateCampaignPage() {
                         </SelectTrigger>
                       </FormControl>{' '}
                       <SelectContent>
-                        {CATEGORIES.map(c => (
-                          <SelectItem key={c} value={c}>
-                            {c}
+                        {CATEGORIES.map(category => (
+                          <SelectItem key={category} value={category}>
+                            {/* Convert enum value to title case for display */}
+                            {category.charAt(0) + category.slice(1).toLowerCase().replace('_', ' ')}
                           </SelectItem>
                         ))}
                       </SelectContent>{' '}

@@ -1,6 +1,7 @@
 import { cookieStorage, createStorage, http } from '@wagmi/core';
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { mainnet } from '@reown/appkit/networks';
+import { injected, walletConnect } from '@wagmi/connectors';
 
 // Project ID must be exactly 32 characters long
 export const projectId = "9759d2a8e963b8f119ce6a8936de115d";
@@ -28,7 +29,10 @@ export const wagmiAdapter = new WagmiAdapter({
   ssr: false,
   projectId,
   networks,
-
+  connectors: [
+    injected(), // MetaMask and other injected wallets
+    walletConnect({ projectId }), // WalletConnect
+  ],
 });
 
 export const config = wagmiAdapter.wagmiConfig;

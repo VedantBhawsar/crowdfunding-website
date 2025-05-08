@@ -129,8 +129,9 @@ export async function POST(req: Request) {
         creatorName: user.displayName || user.name || 'Anonymous Creator',
         creatorAvatar: user.image || '/api/placeholder/150/150',
         raisedAmount: 0,
-        endDate: campaignData.durationDays,
         startDate: new Date(),
+        // Calculate proper endDate by adding durationDays to startDate
+        endDate: new Date(Date.now() + campaignData.durationDays * 24 * 60 * 60 * 1000),
         creatorId: user.id,
       },
     });
@@ -138,25 +139,56 @@ export async function POST(req: Request) {
     // Create milestones if provided
     if (campaignData.milestones && campaignData.milestones.length > 0) {
       await prismaClient.milestone.createMany({
-        data: campaignData.milestones.map((milestone: Milestone) => ({
-          ...milestone,
-          campaignId: campaign.id,
-          status: 'PENDING',
-          fundingAmount: 0,
-        })),
+        data: campaignData.milestones.map((milestone: any) => {
+          // Process targetDate - convert to proper Date object or null
+          let targetDate = null;
+          if (milestone.targetDate && milestone.targetDate.trim() !== '') {
+            try {
+              // Try to create a valid date
+              targetDate = new Date(milestone.targetDate).toISOString();
+            } catch (e) {
+              console.error('Invalid date format for milestone:', e);
+              // Keep as null if invalid
+            }
+          }
+          
+          return {
+            title: milestone.title,
+            description: milestone.description,
+            targetDate: targetDate,
+            completionPercentage: milestone.completionPercentage || 0,
+            campaignId: campaign.id,
+            status: 'PENDING',
+            fundingAmount: 0,
+          };
+        }),
       });
     }
 
     // Create rewards if provided
     if (campaignData.rewards && campaignData.rewards.length > 0) {
       await prismaClient.reward.createMany({
-        data: campaignData.rewards.map((reward: Reward) => ({
-          title: reward.title,
-          description: reward.description,
-          amount: reward.amount,
-          deliveryDate: reward.deliveryDate,
-          campaignId: campaign.id,
-        })),
+        data: campaignData.rewards.map((reward: any) => {
+          // Process deliveryDate - convert to proper Date object or null
+          let deliveryDate = null;
+          if (reward.deliveryDate && reward.deliveryDate.trim() !== '') {
+            try {
+              // Try to create a valid date
+              deliveryDate = new Date(reward.deliveryDate).toISOString();
+            } catch (e) {
+              console.error('Invalid date format for reward:', e);
+              // Keep as null if invalid
+            }
+          }
+          
+          return {
+            title: reward.title,
+            description: reward.description,
+            amount: reward.amount,
+            deliveryDate: deliveryDate,
+            campaignId: campaign.id,
+          };
+        }),
       });
     }
 

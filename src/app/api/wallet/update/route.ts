@@ -29,13 +29,13 @@ export async function POST(req: Request) {
       isConnected: validatedData.isConnected,
     };
 
-    // Handle nullable string fields
+    // Handle nullable string fields - use empty string instead of null for required fields
     if (validatedData.address !== undefined) {
-      updateData.address = validatedData.address;
+      updateData.address = validatedData.address || ''; // Empty string if null
     }
 
     if (validatedData.caipAddress !== undefined) {
-      updateData.caipAddress = validatedData.caipAddress;
+      updateData.caipAddress = validatedData.caipAddress || ''; // Empty string if null
     }
 
     if (validatedData.networkId !== undefined) {
@@ -65,9 +65,9 @@ export async function POST(req: Request) {
       update: updateData,
       create: {
         userId: session.user.id,
-        address: validatedData.address || '',
+        address: validatedData.address || 'disconnected-' + Date.now(), // Unique placeholder if empty
         isConnected: validatedData.isConnected,
-        caipAddress: validatedData.caipAddress || '',
+        caipAddress: validatedData.caipAddress || 'disconnected-' + Date.now(), // Unique placeholder if empty
         balance: validatedData.balance || 0,
         networkId: validatedData.networkId || null,
         lastTransactionAt: validatedData.lastTransactionAt
