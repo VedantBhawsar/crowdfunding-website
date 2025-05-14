@@ -2,10 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/master",
-      "schedule": "0 1 * * *",
-      "headers": {
-        "Authorization": "Bearer 86b74e3748c51e1c1c8e9d23934d07408ff20bbe3b8ba678d4883a8246d900e6"
-      }
+      "schedule": "0 1 * * *"
     }
   ]
 }
