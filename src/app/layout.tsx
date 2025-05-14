@@ -7,6 +7,7 @@ import Providers from '@/components/providers';
 import WalletProvider from '@/context/walletContext';
 import { headers } from 'next/headers';
 import { Toaster } from 'sonner';
+import NextTopLoader from 'nextjs-toploader';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -31,6 +32,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} font-sans antialiased`}>
+        <NextTopLoader color="#145f63" showSpinner={false} />
         <WalletProvider cookies={cookies}>
           <Providers>{children}</Providers>
         </WalletProvider>

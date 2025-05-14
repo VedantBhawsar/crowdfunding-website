@@ -18,6 +18,7 @@ import {
   Coins,
   Vote,
 } from 'lucide-react';
+import Image from 'next/image';
 
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -78,69 +79,26 @@ export default function CampaignPage() {
   const searchParams = useSearchParams();
   const claimRewardId = searchParams.get('claim');
   const {data: session} = useSession()
+  const [claimAttempted, setClaimAttempted] = useState(false);
 
   // Function to handle pledge success
   function handlePledgeSuccess() {
-    // Refetch campaign data or update state locally after successful pledge recording
-    console.log('Pledge successful, refetching campaign data...');
-    // Simple reload for now, could implement smarter state update
-    window.location.reload();
+    setCampaign((prevCampaign) => {
+      if (!prevCampaign) return null;
+      return {
+        ...prevCampaign,
+        raisedAmount: prevCampaign.raisedAmount + (selectedRewardForPledge?.amount || 0),
+      };
+    });
+    toast.success('Thank you for your pledge!');
+    setTimeout(() => window.location.reload(), 1500); // Reload to get updated data
   }
 
-  // Function to open pledge modal
+  // Function to open the pledge modal
   function openPledgeModal(reward: Reward | null = null) {
-    if (!isConnected) {
-      toast.error('Please connect your wallet to back this project.');
-      // Optionally trigger wallet connection here
-      return;
-    }
     setSelectedRewardForPledge(reward);
     setIsPledgeModalOpen(true);
   }
-
-  useEffect(() => {
-    if (!campaignSlug) {
-      setError('Campaign slug not found.');
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchCampaign = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`/api/campaigns/${campaignSlug}`);
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `Failed to fetch campaign (${response.status})`);
-        }
-        const data = await response.json();
-        console.log(data);
-
-        if (!data || !data.id || !data.title) {
-          throw new Error('Received invalid campaign data.');
-        }
-
-        setCampaign(data);
-
-        // Check if there's a reward to claim from the URL
-        if (claimRewardId && data.rewards) {
-          const rewardToClaim = data.rewards.find((reward: Reward) => reward.id === claimRewardId);
-          if (rewardToClaim && rewardToClaim.claimed === 1) {
-            // Show claim UI
-            handleClaimReward(rewardToClaim);
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching campaign:', err);
-        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCampaign();
-  }, [campaignSlug, claimRewardId]); // Depend on campaignSlug and claimRewardId
 
   // Handle reward claiming
   const handleClaimReward = async (reward: Reward) => {
@@ -179,6 +137,49 @@ export default function CampaignPage() {
       setClaimingReward(false);
     }
   };
+
+  useEffect(() => {
+    if (!campaignSlug) {
+      setError('Campaign slug not found.');
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchCampaign = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+
+        // Fetch the campaign
+        const res = await fetch(`/api/campaigns/${campaignSlug}`);
+        
+        if (!res.ok) {
+          throw new Error(`Error fetching campaign: ${res.status}`);
+        }
+        
+        const data = await res.json();
+        setCampaign(data);
+        
+        // Handle "?claim=xxx" parameter in URL
+        if (claimRewardId && !claimAttempted && data.rewards) {
+          setClaimAttempted(true);
+          const rewardToClaim = data.rewards.find((r: Reward) => r.id === claimRewardId);
+          if (rewardToClaim) {
+            handleClaimReward(rewardToClaim);
+          } else {
+            toast.error("The reward you're trying to claim was not found");
+          }
+        }
+      } catch (err) {
+        console.error('Error loading campaign:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load campaign details');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCampaign();
+  }, [campaignSlug, claimRewardId, handleClaimReward, claimAttempted]); // Add claimAttempted dependency
 
   async function handleVote() {
 
@@ -287,12 +288,16 @@ export default function CampaignPage() {
           {/* Main Image/Video */}
           {campaign.images && campaign.images.length > 0 && (
             <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted border">
-              {/* TODO: Implement Carousel or Video Player if needed */}
-              <img
-                src={campaign.images[0]} // Display first image for now
-                alt={`${campaign.title} main visual`}
-                className="w-full h-full object-cover"
-              />
+              {/* Replace img with Next.js Image component */}
+              <div className="relative w-full h-full">
+                <Image 
+                  src={campaign.images[0]} 
+                  alt={`${campaign.title} main visual`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                />
+              </div>
             </div>
           )}
 

@@ -1,174 +1,151 @@
+'use client';
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image'; // Using Next.js Image for optimization
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import Image from 'next/image';
+import { Card, CardFooter, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Clock, Target } from 'lucide-react';
-import { Campaign, CampaignStatus } from '@prisma/client';
-import { useSession } from 'next-auth/react';
-import { usePathname, useRouter } from 'next/navigation';
-import { Button } from '../ui/button';
-import { toast } from 'sonner';
+import { Campaign as PrismaCampaign, CampaignCategory } from '@prisma/client'; // Import Prisma types
 import { motion } from 'framer-motion';
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+import { MessageCircle, Paperclip, CalendarDays } from 'lucide-react';
+
+// Helper function to format Prisma CampaignCategory enum to a display string
+const formatCampaignCategory = (category?: CampaignCategory): string => {
+  if (!category) return 'General';
+  // Capitalize first letter, lowercase rest. Replace underscores with spaces.
+  const formatted = category
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase());
+  return formatted;
 };
 
-const getStatusVariant = (
-  status: CampaignStatus
-): 'default' | 'secondary' | 'destructive' | 'outline' => {
-  switch (status) {
-    case CampaignStatus.ACTIVE:
-      return 'default';
-    case CampaignStatus.COMPLETED:
-      return 'secondary';
-    case CampaignStatus.CANCELLED:
-      return 'outline';
-    case CampaignStatus.FUNDED:
-      return 'destructive';
-    default:
-      return 'default';
+
+// Helper function to format due date (from Prisma schema: endDate)
+const formatDateRelativeToToday = (dateInput?: Date | string | null): string => {
+  if (!dateInput) return 'No Due Date';
+
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+
+  if (isNaN(date.getTime())) {
+    return typeof dateInput === 'string' ? dateInput : 'Invalid Date';
   }
+
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  const dateNormalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const tomorrowNormalized = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+
+  if (dateNormalized.getTime() === todayNormalized.getTime()) {
+    return 'Today';
+  }
+  if (dateNormalized.getTime() === tomorrowNormalized.getTime()) {
+    return 'Tomorrow';
+  }
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 };
+
+// Define the expected shape of the campaign prop, potentially including Prisma's _count for relations
+interface ExtendedCampaign extends PrismaCampaign {
+  comments?: { id: string }[]; // If you fetch comments directly for length
+  _count?: {
+    comments?: number;
+    backers?: number; // Add backers count
+  };
+  // attachmentsCount is not in the schema for Campaign directly.
+  // We will simulate it or use a placeholder.
+  attachmentsCountPlaceholder?: number;
+}
 
 interface CampaignCardProps {
-  campaign: Campaign;
+  campaign: ExtendedCampaign;
 }
 
 const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
-  const { data: session } = useSession();
-  const pathname = usePathname();
-  const router = useRouter();
-  // Calculate progress percentage
-  const progressPercentage =
-    campaign.goal > 0 ? Math.min((campaign.raisedAmount / campaign.goal) * 100, 100) : 0;
+  const fallbackAvatar = campaign.creatorName ? campaign.creatorName.charAt(0).toUpperCase() : 'U';
 
-  // Determine display for time left or status
-  const timeDisplay = campaign.status === CampaignStatus.ACTIVE && (
-    <Badge variant={getStatusVariant(campaign.status)} className="capitalize">
-      {campaign.status.toLowerCase()}
-    </Badge>
-  );
+  console.log(campaign.creatorAvatar)
+  const tagToDisplay = formatCampaignCategory(campaign.category);
+  
+  // Determine comments count:
+  // 1. Prefer _count.comments if available (Prisma's aggregation)
+  // 2. Fallback to campaign.comments.length if the full array is passed
+  // 3. Default to 0
+  const commentsCount = campaign._count?.comments ?? campaign.comments?.length ?? 0;
 
-  const fallbackAvatar = campaign.creatorName ? campaign.creatorName.charAt(0).toUpperCase() : 'C';
+  // Attachments: Placeholder as it's not in the schema for Campaign directly.
+  // If campaign.images should represent attachments, you can use campaign.images.length
+  const attachmentsDisplayCount = campaign.attachmentsCountPlaceholder ?? (campaign.images?.length > 1 ? campaign.images.length -1 : 0) ; // Example: using images count or a placeholder.
 
-  const handleDelete = async () => {
-    try {
-      const response = await fetch(`/api/campaigns/${campaign.slug}`, {
-        method: 'DELETE',
-      });
+  const dueDateDisplay = formatDateRelativeToToday(campaign.endDate);
 
-      if (!response.ok) {
-        toast.error('Failed to delete campaign');
-        return;
-      }
-
-      toast.success('Campaign deleted successfully');
-      router.refresh();
-    } catch (error) {
-      console.error('Error deleting campaign:', error);
-      toast.error('Failed to delete campaign');
-    }
-  };
+  const mainImage = campaign.images?.[0] || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3'; // Default placeholder
 
   return (
     <Link href={`/campaign/${campaign.slug}`} passHref legacyBehavior>
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
+      <motion.a
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.3 }}
-        className="w-full"
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="block w-full cursor-pointer group"
       >
-        <a className="block group">
-          {' '}
-          {/* Wrap in <a> for clickability */}
-          <Card className="h-full overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/30 flex flex-col">
-            {/* Image Section */}
-            <div className="relative w-full aspect-video overflow-hidden">
-              <Image
-                src={
-                  campaign.images?.[0] ||
-                  'https://plus.unsplash.com/premium_photo-1677341558055-832134a85ad6?q=80&w=1760&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-                } // Use first image or a placeholder
-                alt={campaign.title}
-                fill // Use fill for responsive aspect ratio defined by parent
-                style={{ objectFit: 'cover' }} // Crop image to cover area
-                className="transition-transform duration-300 group-hover:scale-105"
-              />
-              {/* Optional: Category Badge on Image */}
-              <Badge variant="secondary" className="absolute top-2 left-2">
-                {campaign.category}
+        <Card className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col p-5 md:p-6">
+          {/* Optional: Image Preview - uncomment if you want an image here */}
+          {/* <div className="relative w-full h-32 mb-4 rounded-md overflow-hidden">
+            <Image
+              src={mainImage}
+              alt={`${campaign.title} cover image`}
+              fill
+              style={{ objectFit: 'cover' }}
+              className="group-hover:scale-105 transition-transform duration-300"
+            />
+          </div> */}
+
+          <div className="flex-grow">
+            <CardTitle className="text-xl font-bold text-teal-700 group-hover:text-teal-800 transition-colors duration-200 mb-1.5">
+              {campaign.title}
+            </CardTitle>
+            <p className="text-sm text-slate-500 mb-5 leading-relaxed line-clamp-2 min-h-[40px]">
+              {campaign.shortDescription}
+            </p>
+
+            <div className="flex items-center justify-between">
+              <Badge
+                variant="secondary"
+                className="bg-teal-50 text-teal-600 border border-teal-100 px-3.5 py-1.5 text-xs font-medium rounded-md hover:bg-teal-100 transition-colors"
+              >
+                {tagToDisplay}
               </Badge>
+              <Avatar className="w-8 h-8">
+                <AvatarImage
+                  src={campaign.creatorAvatar} // Use the field from your schema
+                  alt={campaign.creatorName || 'Creator'}
+                />
+              </Avatar>
             </div>
+          </div>
 
-            {/* Content Section */}
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg font-semibold leading-tight group-hover:text-primary transition-colors truncate cursor-pointer">
-                {campaign.title}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground line-clamp-2 h-[40px]">
-                {' '}
-                {/* Limit description lines */}
-                {campaign.shortDescription}
-              </p>
-            </CardHeader>
-
-            <CardContent className="pt-0 pb-4 flex-grow">
-              <div className="mb-3">
-                <Progress value={progressPercentage} className="h-2" />
-                <div className="flex justify-between items-center mt-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-primary/90">
-                    {formatCurrency(campaign.raisedAmount)} raised
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Target className="h-3 w-3" /> {formatCurrency(campaign.goal)}
-                  </span>
-                </div>
+          <CardFooter className="border-t border-slate-200 pt-4 pb-0 px-0 mt-6">
+            <div className="flex items-center justify-between w-full text-sm text-slate-600">
+              {/* <div className="flex items-center gap-1.5">
+                <MessageCircle className="w-4 h-4 text-slate-400" />
+                <span>{commentsCount}</span>
+              </div> */}
+              <div className="flex items-center gap-1.5">
+                <Paperclip className="w-4 h-4 text-slate-400" />
+                <span>{attachmentsDisplayCount}</span> {/* Using the placeholder or image count */}
               </div>
-              {/* Days Left / Status */}
-              <div className="flex items-center text-xs text-muted-foreground gap-1">
-                <Clock className="h-3 w-3" />
-                {timeDisplay}
+              <div className="flex items-center gap-1.5">
+                <CalendarDays className="w-4 h-4 text-slate-400" />
+                <span>{dueDateDisplay}</span>
               </div>
-            </CardContent>
-
-            {/* Footer Section (Creator Info) */}
-            <CardFooter className="pt-2 pb-4 border-t bg-muted/30">
-              {pathname === '/account' && session?.user.id === campaign.creatorId && (
-                <Button variant="destructive" onClick={handleDelete}>
-                  Delete
-                </Button>
-              )}
-
-              {pathname !== `/account` && (
-                <Link
-                  href={`/account?id=${campaign.creatorId}`}
-                  className="flex items-center space-x-2 w-full"
-                >
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage
-                      src={campaign.creatorAvatar || undefined}
-                      alt={campaign.creatorName || 'Creator'}
-                    />
-                    <AvatarFallback>{fallbackAvatar}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-muted-foreground truncate">
-                    by {campaign.creatorName || 'Anonymous'}
-                  </span>
-                </Link>
-              )}
-            </CardFooter>
-          </Card>
-        </a>
-      </motion.div>
+            </div>
+          </CardFooter>
+        </Card>
+      </motion.a>
     </Link>
   );
 };

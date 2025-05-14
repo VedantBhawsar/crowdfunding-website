@@ -75,7 +75,6 @@ interface IUser extends User {
 
 const AccountPage = () => {
   const searchParams = useSearchParams();
-  const userId = searchParams.get('id');
   const { data: session, status, update: updateSession } = useSession();
   const [user, setUser] = useState<IUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -489,7 +488,7 @@ const AccountPage = () => {
 
 // Enhanced wallet connection manager to handle network ID and balance
 const WalletConnectionManager = ({ user }: { user: any }) => {
-  const { address, isConnected, caipAddress, status } = useAppKitAccount();
+  const { address, isConnected, caipAddress } = useAppKitAccount();
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<
     'connected' | 'disconnected' | 'error' | 'connecting'
@@ -542,120 +541,56 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
   // Update database when connection state changes
   useEffect(() => {
     const updateWalletConnection = async () => {
-      try {
-        // Skip during initial loading
-        if (initialLoad) return;
+      // If wallet was already connected but now it's not, update status
+      if (connectionStatus === 'connected' && !isConnected) {
+        setConnectionStatus('disconnected');
+        return;
+      }
 
-        // If we're connecting, update the status
-        if (isConnected && connectionStatus !== 'connected') {
-          setConnectionStatus('connecting');
-        }
-        
-        // Log connection data for debugging
-        console.log('Wallet connection data:', { 
-          isConnected, 
-          address, 
-          caipAddress,
-          storedData: storedWalletData 
+      // If wallet is not connected, no need to update anything
+      if (!isConnected || !address || !caipAddress) {
+        return;
+      }
+
+      // Don't update if we're still loading or during initial component mount
+      if (initialLoad) {
+        return;
+      }
+
+      try {
+        // Update wallet status in database
+        const response = await fetch('/api/wallet/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            address,
+            isConnected,
+            caipAddress,
+            status: 'active',
+          }),
         });
 
-        // Only update if there's a change in connection status
-        if (
-          storedWalletData?.isConnected !== isConnected ||
-          storedWalletData?.address !== address ||
-          storedWalletData?.caipAddress !== caipAddress
-        ) {
-          // Get network information
-          let networkId = '1'; // Default to Ethereum mainnet
-          let balance = 0;
-          
-          if (isConnected && address) {
-            try {
-              // Try to get balance - in a real implementation, you would use ethers.js or viem
-              const { wagmiAdapter } = await import('@/config/wagmi');
-              const { getPublicClient } = await import('@wagmi/core');
-              const publicClient = getPublicClient(wagmiAdapter.wagmiConfig);
-              
-              if (publicClient) {
-                try {
-                  // Get chain ID
-                  const chainId = await publicClient.getChainId();
-                  networkId = chainId.toString();
-                  
-                  // Get balance
-                  const balanceResult = await publicClient.getBalance({ address: address as `0x${string}` });
-                  // Convert from wei to ETH
-                  balance = Number(balanceResult) / 1e18;
-                } catch (e) {
-                  console.error('Error getting chain or balance:', e);
-                  // Use defaults if there's an error
-                }
-              }
-            } catch (e) {
-              console.error('Error getting provider:', e);
-            }
-          }
-
-          try {
-            const response = await fetch('/api/wallet/update', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                address: address || null,
-                isConnected: !!isConnected,
-                caipAddress: caipAddress || null,
-                balance: isConnected ? balance : 0,
-                networkId: isConnected ? networkId : null,
-                lastTransactionAt: isConnected ? new Date().toISOString() : null,
-                status: isConnected ? 'active' : 'inactive',
-              }),
-            });
-            
-            const responseData = await response.json();
-            console.log('Wallet update API response:', responseData);
-            
-            if (!response.ok) {
-              // Get detailed error message from response if available
-              const errorMessage = responseData.error || responseData.message || 'Failed to update wallet status';
-              throw new Error(errorMessage);
-            }
-            
-            // Check if the response has a data property, otherwise use the response directly
-            setStoredWalletData(responseData.data || responseData);
-            
-            // Log success for debugging
-            console.log('Wallet update successful:', responseData.data || responseData);
-          } catch (apiError) {
-            console.error('API request error:', apiError);
-            throw apiError; // Re-throw to be caught by the outer catch block
-          }
-
-          // Update session with wallet information
-          if (isConnected && address) {
-            await updateSession({
-              user: {
-                ...session?.user,
-                walletAddress: address,
-              },
-            });
-          }
-
-          // Don't show toast on first load
-          if (!initialLoad) {
-            if (isConnected) {
-              toast.success('Wallet connection saved');
-              setConnectionError(null);
-            } else {
-              toast.info('Wallet disconnected');
-            }
-          }
+        if (!response.ok) {
+          throw new Error('Failed to update wallet status');
         }
 
-        setConnectionStatus(isConnected ? 'connected' : 'disconnected');
+        const data = await response.json();
+        setStoredWalletData(data.wallet);
+        setConnectionStatus('connected');
+        setConnectionError(null);
+
+        // Update session
+        await updateSession({
+          user: {
+            ...session?.user,
+            walletAddress: address,
+            isVerified: true,
+          },
+        });
       } catch (error) {
-        console.error('Wallet connection error:', error);
+        console.error('Wallet update error:', error);
         setConnectionStatus('error');
         setConnectionError('Failed to update wallet status. Please try again.');
         toast.error('Failed to update wallet status');
@@ -666,7 +601,7 @@ const WalletConnectionManager = ({ user }: { user: any }) => {
     if (typeof isConnected !== 'undefined') {
       updateWalletConnection();
     }
-  }, [isConnected, address, caipAddress, initialLoad, session, updateSession, connectionStatus]);
+  }, [isConnected, address, caipAddress, initialLoad, session, updateSession, connectionStatus, storedWalletData]);
 
   const handleDisconnect = async () => {
     setIsLoading(true);

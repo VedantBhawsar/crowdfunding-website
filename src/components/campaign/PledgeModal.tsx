@@ -1,5 +1,5 @@
 // components/campaign/PledgeModal.tsx (or similar)
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAccount, useSendTransaction, useWaitForTransactionReceipt } from 'wagmi';
 import { parseEther } from 'viem';
 import { toast } from 'sonner';
@@ -133,20 +133,8 @@ export const PledgeModal: React.FC<PledgeModalProps> = ({
     }
   };
 
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (transactionStatus === 'success') {
-      timeout = setTimeout(() => {
-        recordContribution();
-      }, 10000);
-    }
-    return () => {
-      clearTimeout(timeout);
-    };
-  }, [transactionStatus]);
-
   // Function to call backend API
-  const recordContribution = async () => {
+  const recordContribution = useCallback(async () => {
     if (!hash) return; // Should not happen if called from onSuccess
 
     setIsRecording(true);
@@ -181,7 +169,19 @@ export const PledgeModal: React.FC<PledgeModalProps> = ({
     } finally {
       setIsRecording(false);
     }
-  };
+  }, [hash, amount, campaignId, selectedReward, onSuccess, onOpenChange]);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (transactionStatus === 'success') {
+      timeout = setTimeout(() => {
+        recordContribution();
+      }, 10000);
+    }
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [transactionStatus, recordContribution]);
 
   const isLoading = isSending || isRecording;
   const error = sendError || recordError;

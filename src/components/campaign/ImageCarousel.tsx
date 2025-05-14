@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '../ui/card';
 import { Carousel, CarouselContent, CarouselItem } from '../ui/carousel';
+import Image from 'next/image';
 
 const ImageCarousel = ({ images }: { images: string[] }) => {
   return (
@@ -12,7 +13,15 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
             <div className="relative">
               <Card>
                 <CardContent className="flex aspect-video items-center justify-center p-0 rounded-lg overflow-hidden">
-                  <img alt={`image-${index}`} src={url} className="w-full h-full" />
+                  <div className="relative w-full h-full">
+                    <Image 
+                      alt={`image-${index}`} 
+                      src={url} 
+                      fill 
+                      style={{ objectFit: 'cover' }}
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>

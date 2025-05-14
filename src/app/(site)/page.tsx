@@ -1,14 +1,21 @@
 'use client';
 import React from 'react';
 import HeroSection from '@/components/landing/HeroSection';
-import CTASection from '@/components/landing/CTASection';
+import ServicesSection from '@/components/landing/ServicesSection';
+import StatsSection from '@/components/landing/StatsSection';
+import PricingSection from '@/components/landing/PricingSection';
+import IntegrationSection from '@/components/landing/IntegrationSection';
 import Footer from '@/components/footer';
 
 const LandingPage = () => {
   return (
-    <div className="min-h-full mt-10 ">
+    <div className="min-h-full">
       <HeroSection />
-      <CTASection />
+      <ServicesSection />
+      <StatsSection />
+
+      <PricingSection />
+      <IntegrationSection />
       <Footer />
     </div>
   );
