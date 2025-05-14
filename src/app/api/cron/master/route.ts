@@ -6,7 +6,7 @@ import nodemailer, { SentMessageInfo, Transporter } from 'nodemailer';
 import { Options } from 'nodemailer/lib/smtp-transport';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes max execution time
+export const maxDuration = 60; // 60 seconds max execution time for Hobby plan
 
 /**
  * Master cron job that handles all scheduled tasks:

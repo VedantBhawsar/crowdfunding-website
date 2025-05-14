@@ -3,7 +3,7 @@ import prismaClient from '@/lib/prismadb';
 import { CampaignStatus } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes max execution time
+export const maxDuration = 60; // 60 seconds max execution time for Hobby plan
 
 /**
  * Updates campaign statuses based on dates and funding goals
