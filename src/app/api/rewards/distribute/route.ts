@@ -6,7 +6,7 @@ import { Options } from 'nodemailer/lib/smtp-transport';
 import { distributeRewards } from '@/lib/blockchain';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300; // 5 minutes max execution time
+export const maxDuration = 60; // 5 minutes max execution time
 
 export async function GET(request: Request) {
   try {
