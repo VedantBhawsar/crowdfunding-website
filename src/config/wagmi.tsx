@@ -4,7 +4,7 @@ import { mainnet } from '@reown/appkit/networks';
 import { injected, walletConnect } from '@wagmi/connectors';
 
 // Project ID must be exactly 32 characters long
-export const projectId = "9759d2a8e963b8f119ce6a8936de115d";
+export const projectId = '9759d2a8e963b8f119ce6a8936de115d';
 
 if (!projectId) {
   throw new Error('Project ID is not defined');

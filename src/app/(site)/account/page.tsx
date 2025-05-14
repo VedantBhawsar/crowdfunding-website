@@ -33,7 +33,7 @@ import { ProfileForm, ProfileFormSkeleton } from '@/components/profile-form';
 import { useAppKitAccount } from '@reown/appkit/react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import WalletConnectButton from '@/components/ui/wallet-connect-button';
+import CustomWalletConnectButton from '@/components/ui/custom-wallet-connect-button';
 import { useSession } from 'next-auth/react';
 import { CldUploadButton } from 'next-cloudinary';
 import {
@@ -55,6 +55,8 @@ import {
 } from '@prisma/client';
 import CampaignCard from '@/components/campaign/CampaignCard';
 import { useTheme } from 'next-themes';
+import { useCustomWallet } from '@/context/CustomWalletContext';
+import WalletDetails from '@/components/ui/wallet-details';
 
 // Updated interface to match the new schema
 interface IUser extends User {
@@ -486,295 +488,24 @@ const AccountPage = () => {
   );
 };
 
-// Enhanced wallet connection manager to handle network ID and balance
+// Replace the WalletConnectionManager component with our new component
 const WalletConnectionManager = ({ user }: { user: any }) => {
-  const { address, isConnected, caipAddress } = useAppKitAccount();
-  const [isLoading, setIsLoading] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<
-    'connected' | 'disconnected' | 'error' | 'connecting'
-  >('disconnected');
-  const [storedWalletData, setStoredWalletData] = useState<{
-    address: string | null;
-    isConnected: boolean;
-    caipAddress: string | null;
-    balance: number;
-    networkId: string | null;
-  } | null>(null);
-  const [initialLoad, setInitialLoad] = useState(true);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-  const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
-
-  // Fetch the saved wallet status on component mount
-  useEffect(() => {
-    const fetchWalletStatus = async () => {
-      try {
-        const response = await fetch('/api/wallet/status');
-        if (!response.ok) throw new Error('Failed to fetch wallet status');
-
-        const data = await response.json();
-        setStoredWalletData(data);
-
-        // If we have a stored connection but the wallet isn't currently connected
-        // This helps with reconnection after page refresh
-        if (data.isConnected && !isConnected) {
-          console.log('Previous wallet connection detected, attempting to reconnect');
-          // We don't force reconnection here, just show the state
-          setConnectionStatus('disconnected');
-          setConnectionError('Your wallet was previously connected but is now disconnected. Please reconnect.');
-        } else if (isConnected) {
-          setConnectionStatus('connected');
-          setConnectionError(null);
-        }
-
-        setInitialLoad(false);
-      } catch (error) {
-        console.error('Error fetching wallet status:', error);
-        setInitialLoad(false);
-        setConnectionError('Failed to fetch wallet status. Please try again.');
-      }
-    };
-
-    fetchWalletStatus();
-  }, [isConnected]);
-
-  // Update database when connection state changes
-  useEffect(() => {
-    const updateWalletConnection = async () => {
-      // If wallet was already connected but now it's not, update status
-      if (connectionStatus === 'connected' && !isConnected) {
-        setConnectionStatus('disconnected');
-        return;
-      }
-
-      // If wallet is not connected, no need to update anything
-      if (!isConnected || !address || !caipAddress) {
-        return;
-      }
-
-      // Don't update if we're still loading or during initial component mount
-      if (initialLoad) {
-        return;
-      }
-
-      try {
-        // Update wallet status in database
-        const response = await fetch('/api/wallet/update', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            address,
-            isConnected,
-            caipAddress,
-            status: 'active',
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update wallet status');
-        }
-
-        const data = await response.json();
-        setStoredWalletData(data.wallet);
-        setConnectionStatus('connected');
-        setConnectionError(null);
-
-        // Update session
-        await updateSession({
-          user: {
-            ...session?.user,
-            walletAddress: address,
-            isVerified: true,
-          },
-        });
-      } catch (error) {
-        console.error('Wallet update error:', error);
-        setConnectionStatus('error');
-        setConnectionError('Failed to update wallet status. Please try again.');
-        toast.error('Failed to update wallet status');
-      }
-    };
-
-    // Only run if we have valid connection data
-    if (typeof isConnected !== 'undefined') {
-      updateWalletConnection();
-    }
-  }, [isConnected, address, caipAddress, initialLoad, session, updateSession, connectionStatus, storedWalletData]);
-
-  const handleDisconnect = async () => {
-    setIsLoading(true);
-    try {
-      // Disconnect from wallet
-      try {
-        const { wagmiAdapter } = await import('@/config/wagmi');
-        const { disconnect } = await import('@wagmi/core');
-        
-        // Disconnect all connectors
-        await disconnect(wagmiAdapter.wagmiConfig);
-      } catch (e) {
-        console.error('Error disconnecting wallet:', e);
-      }
-      
-      // Update wallet status in database
-      const response = await fetch('/api/wallet/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          address: null,
-          isConnected: false,
-          caipAddress: null,
-          balance: 0,
-          networkId: null,
-          lastTransactionAt: null,
-          status: 'inactive',
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to disconnect wallet');
-      }
-
-      setConnectionStatus('disconnected');
-      setStoredWalletData(null);
-      setConnectionError(null);
-      toast.success('Wallet disconnected successfully');
-
-      // Update session first
-      await updateSession({
-        user: {
-          ...session?.user,
-          walletAddress: null,
-          isVerified: false,
-        },
-      });
-
-      // Force page reload to completely disconnect the wallet
-      // Using setTimeout to ensure the session update completes first
-      setTimeout(() => {
-        router.refresh();
-      }, 100);
-    } catch (error) {
-      console.error('Wallet disconnection error:', error);
-      setConnectionError('Failed to disconnect wallet. Please try again.');
-      toast.error('Failed to disconnect wallet');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRetryConnection = () => {
-    // Reset error state
-    setConnectionError(null);
-    // Force refresh to retry connection
-    router.refresh();
-  };
+  const { wallet } = useCustomWallet();
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Connection Status</Label>
-        <div className="flex items-center gap-2">
-          <Badge
-            variant={
-              initialLoad
-                ? 'outline'
-                : connectionStatus === 'connected'
-                  ? 'default'
-                  : connectionStatus === 'error'
-                    ? 'destructive'
-                    : connectionStatus === 'connecting'
-                      ? 'secondary'
-                      : 'secondary'
-            }
-          >
-            {initialLoad
-              ? 'Loading...'
-              : connectionStatus === 'connected'
-                ? 'Connected'
-                : connectionStatus === 'error'
-                  ? 'Error'
-                  : connectionStatus === 'connecting'
-                    ? 'Connecting...'
-                    : 'Disconnected'}
-          </Badge>
-        </div>
-      </div>
-
-      {address && (
-        <>
-          <div className="space-y-2">
-            <Label>Wallet Address</Label>
-            <div className="flex items-center gap-2">
-              <Input value={address} disabled />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => {
-                  navigator.clipboard.writeText(address);
-                  toast.success('Address copied to clipboard');
-                }}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-
-          {storedWalletData?.balance !== undefined && (
-            <div className="space-y-2">
-              <Label>Balance</Label>
-              <div className="flex items-center gap-2">
-                <Input value={`${storedWalletData.balance.toFixed(6)} ETH`} disabled />
-              </div>
-            </div>
-          )}
-
-          {storedWalletData?.networkId && (
-            <div className="space-y-2">
-              <Label>Network</Label>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  {storedWalletData.networkId === '1'
-                    ? 'Ethereum Mainnet'
-                    : storedWalletData.networkId === '5'
-                      ? 'Goerli Testnet'
-                      : storedWalletData.networkId === '11155111'
-                        ? 'Sepolia Testnet'
-                        : `Chain ID: ${storedWalletData.networkId}`}
-                </Badge>
-              </div>
-            </div>
-          )}
-
-          {user?.wallet?.lastTransactionAt && (
-            <div className="text-sm text-gray-500">
-              Last transaction: {new Date(user.wallet.lastTransactionAt).toLocaleString()}
-            </div>
-          )}
-        </>
-      )}
-
-      <div className="flex gap-2">
-        {!isConnected ? (
-          <WalletConnectButton />
+      <div className="flex flex-col space-y-4">
+        {wallet ? (
+          <WalletDetails />
         ) : (
-          <Button variant="destructive" onClick={handleDisconnect} disabled={isLoading}>
-            {isLoading ? 'Disconnecting...' : 'Disconnect Wallet'}
-          </Button>
+          <div className="flex flex-col items-center justify-center space-y-4 py-6">
+            <p className="text-center text-sm text-muted-foreground">
+              Connect your wallet to interact with blockchain features
+            </p>
+            <CustomWalletConnectButton />
+          </div>
         )}
       </div>
-
-      {connectionError && (
-        <div className="text-sm text-destructive">
-          {connectionError}
-          <Button variant="link" onClick={handleRetryConnection}>
-            Retry
-          </Button>
-        </div>
-      )}
     </div>
   );
 };

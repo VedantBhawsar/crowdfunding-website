@@ -115,23 +115,23 @@ export async function POST(req: Request) {
     const now = new Date();
     let startDate = now;
     let status: CampaignStatus = CampaignStatus.DRAFT;
-    
+
     // If launchNow is true or not provided, set status to ACTIVE and start date to now
     if (campaignData.launchNow === true || campaignData.launchNow === undefined) {
       status = CampaignStatus.ACTIVE;
       startDate = now;
-    } 
+    }
     // If scheduledStartDate is provided and it's in the future, set status to DRAFT
     else if (campaignData.scheduledStartDate) {
       const scheduledDate = new Date(campaignData.scheduledStartDate);
       startDate = scheduledDate;
-      
+
       // If scheduled date is today or in the past, set status to ACTIVE
       if (scheduledDate <= now) {
         status = CampaignStatus.ACTIVE;
       }
     }
-    
+
     // Calculate end date based on start date and duration
     const endDate = new Date(startDate.getTime() + campaignData.durationDays * 24 * 60 * 60 * 1000);
 
@@ -177,7 +177,7 @@ export async function POST(req: Request) {
               // Keep as null if invalid
             }
           }
-          
+
           return {
             title: milestone.title,
             description: milestone.description,
@@ -206,7 +206,7 @@ export async function POST(req: Request) {
               // Keep as null if invalid
             }
           }
-          
+
           return {
             title: reward.title,
             description: reward.description,

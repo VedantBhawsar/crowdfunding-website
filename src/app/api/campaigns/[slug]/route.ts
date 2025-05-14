@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import prismaClient from '@/lib/prismadb';
 import { PrismaClient } from '@prisma/client';
 
+// Mark this route as dynamic to prevent static generation
+export const dynamic = 'force-dynamic';
+
 export async function DELETE(request: NextRequest, { params }: { params: { slug: string } }) {
   const campaignSlug = params.slug;
 

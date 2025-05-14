@@ -86,13 +86,13 @@ export const PledgeModal: React.FC<PledgeModalProps> = ({
       toast.error('Please connect your wallet first.');
       return;
     }
-    
+
     // Validate creator wallet address
     if (!creatorWalletAddress) {
       toast.error("Creator's wallet address is not available.");
       return;
     }
-    
+
     // Validate that the creator address is a proper Ethereum address
     const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (!ethAddressRegex.test(creatorWalletAddress)) {
@@ -100,13 +100,13 @@ export const PledgeModal: React.FC<PledgeModalProps> = ({
       console.error('Invalid creator wallet address:', creatorWalletAddress);
       return;
     }
-    
+
     const pledgeAmount = parseFloat(amount);
     if (isNaN(pledgeAmount) || pledgeAmount <= 0) {
       toast.error('Please enter a valid amount.');
       return;
     }
-    
+
     if (customAmountError) {
       toast.error(customAmountError);
       return;
@@ -117,10 +117,10 @@ export const PledgeModal: React.FC<PledgeModalProps> = ({
       if (!creatorWalletAddress.startsWith('0x')) {
         creatorWalletAddress = '0x' + creatorWalletAddress;
       }
-      
+
       // Log the address for debugging
       console.log('Sending transaction to address:', creatorWalletAddress);
-      
+
       // Send the transaction with proper type casting
       sendTransaction({
         to: creatorWalletAddress as `0x${string}`,

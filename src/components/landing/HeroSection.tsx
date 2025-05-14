@@ -17,7 +17,7 @@ import {
   BarChartHorizontalBig,
   Play,
   Shield,
-  Zap
+  Zap,
 } from 'lucide-react';
 
 // Create a context for cursor state
@@ -35,7 +35,7 @@ export const useCursor = () => useContext(CursorContext);
 
 const HeroSection = () => {
   const [cursorType, setCursorType] = useState('default');
-  
+
   const fadeInUpVariants = {
     hidden: { y: 30, opacity: 0 },
     visible: {
@@ -56,38 +56,48 @@ const HeroSection = () => {
         {/* Hero Content with CustomCursor - the cursor-none class hides the default cursor */}
         <div className="relative pt-10 pb-16 lg:pt-12 lg:pb-24 overflow-hidden cursor-none">
           <CustomCursor enabled={true} />
-          
+
           {/* Floating Decorative Icons */}
-          <motion.div 
+          <motion.div
             className="absolute top-[30%] left-[calc(50%-600px)] sm:left-[5%] lg:left-[10%] xl:left-[15%] z-0 hidden sm:block"
-            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8, duration: 0.5 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
           >
             <Settings2 className="w-7 h-7 text-teal-600 opacity-80" />
           </motion.div>
-          <motion.div 
+          <motion.div
             className="absolute top-[38%] left-[calc(50%-580px)] sm:left-[4%] lg:left-[8%] xl:left-[13%] z-0 hidden sm:block"
-            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.9, duration: 0.5 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
           >
             <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-gray-300 bg-white shadow-sm">
               <MoveRight className="w-4 h-4 text-gray-500" />
             </div>
           </motion.div>
-          <motion.div 
+          <motion.div
             className="absolute top-[46%] left-[calc(50%-600px)] sm:left-[5%] lg:left-[10%] xl:left-[15%] z-0 hidden sm:block"
-            initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.0, duration: 0.5 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 1.0, duration: 0.5 }}
           >
             <FileText className="w-7 h-7 text-lime-500 opacity-80" />
           </motion.div>
 
-          <motion.div 
+          <motion.div
             className="absolute top-[30%] right-[calc(50%-600px)] sm:right-[5%] lg:right-[10%] xl:right-[15%] z-0 hidden sm:block"
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.8, duration: 0.5 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8, duration: 0.5 }}
           >
             <BarChartBig className="w-7 h-7 text-lime-500 opacity-80" />
           </motion.div>
-          <motion.div 
+          <motion.div
             className="absolute top-[38%] right-[calc(50%-580px)] sm:right-[4%] lg:right-[8%] xl:right-[13%] z-0 hidden sm:block"
-            initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.9, duration: 0.5 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.9, duration: 0.5 }}
           >
             <div className="flex items-center justify-center w-9 h-9 rounded-full border-2 border-gray-300 bg-white shadow-sm">
               <Waves className="w-4 h-4 text-gray-500" />
@@ -100,27 +110,25 @@ const HeroSection = () => {
               initial="hidden"
               animate="visible"
               variants={{
-                visible: { transition: { staggerChildren: 0.2 } }
+                visible: { transition: { staggerChildren: 0.2 } },
               }}
             >
               {/* Subtitle */}
-              <motion.div
-                variants={fadeInUpVariants}
-                className="mb-4"
-              >
+              <motion.div variants={fadeInUpVariants} className="mb-4">
                 <span className="inline-block bg-teal-50 text-teal-700 text-sm font-semibold px-4 py-1.5 rounded-full">
                   <Zap className="w-4 h-4 inline-block mr-1.5 -mt-0.5" />
                   Decentralized Crowdfunding Platform
                 </span>
               </motion.div>
-              
+
               <motion.h1
                 variants={fadeInUpVariants}
                 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight mb-6 text-gray-800"
               >
                 The Future of <span className="text-teal-600">Crowdfunding</span>
                 <br />
-                with <span className="relative inline-block">
+                with{' '}
+                <span className="relative inline-block">
                   Blockchain Technology
                   <span className="absolute -bottom-1 left-0 w-full h-1 bg-lime-300 rounded-full"></span>
                 </span>
@@ -130,8 +138,8 @@ const HeroSection = () => {
                 variants={fadeInUpVariants}
                 className="text-base sm:text-lg lg:text-xl text-gray-600 mb-10 max-w-2xl mx-auto"
               >
-                Secure, transparent, and decentralized funding for innovative projects. 
-                Let&apos;s take your ideas further with blockchain technology.
+                Secure, transparent, and decentralized funding for innovative projects. Let&apos;s
+                take your ideas further with blockchain technology.
               </motion.p>
 
               <motion.div
@@ -174,17 +182,19 @@ const HeroSection = () => {
 
           {/* Stats Cards Row */}
           <div className="container mx-auto px-4 mt-16 lg:mt-20 relative z-10">
-            <motion.div 
+            <motion.div
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 items-stretch"
               initial="hidden"
               animate="visible"
               variants={{
-                visible: { transition: { staggerChildren: 0.1, delayChildren: cardAnimationDelay } }
+                visible: {
+                  transition: { staggerChildren: 0.1, delayChildren: cardAnimationDelay },
+                },
               }}
             >
               {/* Card 1: Projects */}
-              <motion.div 
-                variants={fadeInUpVariants} 
+              <motion.div
+                variants={fadeInUpVariants}
                 className="bg-teal-700 text-white p-6 rounded-xl shadow-xl flex flex-col justify-center h-[200px]"
               >
                 <div className="flex items-center mb-4">
@@ -197,8 +207,8 @@ const HeroSection = () => {
               </motion.div>
 
               {/* Card 2: Total Funds */}
-              <motion.div 
-                variants={fadeInUpVariants} 
+              <motion.div
+                variants={fadeInUpVariants}
                 className="bg-white p-6 rounded-xl shadow-xl flex flex-col justify-between h-[200px]"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -213,13 +223,15 @@ const HeroSection = () => {
                 <div>
                   <div className="text-xs text-gray-500 mb-1">Total Funds</div>
                   <div className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">1951+ ETH</div>
-                  <p className="text-xs text-gray-500">Increase of <span className="font-semibold text-gray-700">126</span> this month</p>
+                  <p className="text-xs text-gray-500">
+                    Increase of <span className="font-semibold text-gray-700">126</span> this month
+                  </p>
                 </div>
               </motion.div>
 
               {/* Card 3: Blockchain Networks */}
-              <motion.div 
-                variants={fadeInUpVariants} 
+              <motion.div
+                variants={fadeInUpVariants}
                 className="bg-lime-100 p-6 rounded-xl shadow-xl flex flex-col justify-between h-[200px]"
               >
                 <div className="flex items-center mb-4">
@@ -233,7 +245,7 @@ const HeroSection = () => {
                 </div>
               </motion.div>
             </motion.div>
-            
+
             {/* Security Feature Card */}
             <motion.div
               variants={fadeInUpVariants}
@@ -252,12 +264,16 @@ const HeroSection = () => {
                       Secure Smart Contracts and Transparent Funding
                     </p>
                     <p className="text-sm text-teal-100">
-                      Our blockchain technology ensures complete transparency and security for all transactions
+                      Our blockchain technology ensures complete transparency and security for all
+                      transactions
                     </p>
                   </div>
                 </div>
                 <div className="ml-auto">
-                  <Button variant="ghost" className="text-teal-100 hover:text-white hover:bg-white/10 px-4">
+                  <Button
+                    variant="ghost"
+                    className="text-teal-100 hover:text-white hover:bg-white/10 px-4"
+                  >
                     Learn More <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>

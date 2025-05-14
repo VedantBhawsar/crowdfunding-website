@@ -133,7 +133,7 @@ const CATEGORIES = [
   'PUBLISHING',
   'FASHION',
   'COMMUNITY',
-  'OTHER'
+  'OTHER',
 ];
 
 export default function CreateCampaignPage() {
@@ -541,7 +541,7 @@ export default function CreateCampaignPage() {
                   )}
                 />
               </div>
-              
+
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Launch Settings</h3>
                 <FormField
@@ -554,7 +554,7 @@ export default function CreateCampaignPage() {
                           type="checkbox"
                           className="h-4 w-4 mt-1"
                           checked={field.value}
-                          onChange={(e) => {
+                          onChange={e => {
                             field.onChange(e.target.checked);
                             if (e.target.checked) {
                               form.setValue('scheduledStartDate', undefined);
@@ -564,9 +564,7 @@ export default function CreateCampaignPage() {
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Launch campaign immediately
-                        </FormLabel>
+                        <FormLabel>Launch campaign immediately</FormLabel>
                         <FormDescription>
                           If unchecked, you can schedule a future launch date
                         </FormDescription>
@@ -574,7 +572,7 @@ export default function CreateCampaignPage() {
                     </FormItem>
                   )}
                 />
-                
+
                 {!form.watch('launchNow') && (
                   <FormField
                     control={form.control}
@@ -586,11 +584,11 @@ export default function CreateCampaignPage() {
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
-                                variant={"outline"}
-                                className={"w-full pl-3 text-left font-normal"}
+                                variant={'outline'}
+                                className={'w-full pl-3 text-left font-normal'}
                               >
                                 {field.value ? (
-                                  format(field.value, "PPP")
+                                  format(field.value, 'PPP')
                                 ) : (
                                   <span>Pick a date</span>
                                 )}
@@ -602,13 +600,11 @@ export default function CreateCampaignPage() {
                             <Calendar
                               mode="single"
                               selected={field.value}
-                              onSelect={(date) => {
+                              onSelect={date => {
                                 field.onChange(date);
                                 setScheduledDate(date);
                               }}
-                              disabled={(date) =>
-                                date < new Date(new Date().setHours(0, 0, 0, 0))
-                              }
+                              disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))}
                               initialFocus
                             />
                           </PopoverContent>
@@ -1154,7 +1150,7 @@ export default function CreateCampaignPage() {
             </Button>
             <Button type="submit" disabled={isSubmitting || submitting}>
               {(isSubmitting || submitting) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {(isSubmitting || submitting) ? 'Creating...' : 'Create Campaign'}
+              {isSubmitting || submitting ? 'Creating...' : 'Create Campaign'}
             </Button>
           </div>
         </form>

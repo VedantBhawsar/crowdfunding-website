@@ -1,6 +1,9 @@
 import prismaClient from '@/lib/prismadb';
 import { NextResponse } from 'next/server';
 
+// Mark this route as dynamic to prevent static generation
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   try {
     const categories = await prismaClient.campaign.findMany({

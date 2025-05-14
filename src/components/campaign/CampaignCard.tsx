@@ -20,7 +20,6 @@ const formatCampaignCategory = (category?: CampaignCategory): string => {
   return formatted;
 };
 
-
 // Helper function to format due date (from Prisma schema: endDate)
 const formatDateRelativeToToday = (dateInput?: Date | string | null): string => {
   if (!dateInput) return 'No Due Date';
@@ -37,7 +36,11 @@ const formatDateRelativeToToday = (dateInput?: Date | string | null): string => 
 
   const dateNormalized = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const todayNormalized = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const tomorrowNormalized = new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate());
+  const tomorrowNormalized = new Date(
+    tomorrow.getFullYear(),
+    tomorrow.getMonth(),
+    tomorrow.getDate()
+  );
 
   if (dateNormalized.getTime() === todayNormalized.getTime()) {
     return 'Today';
@@ -67,9 +70,9 @@ interface CampaignCardProps {
 const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   const fallbackAvatar = campaign.creatorName ? campaign.creatorName.charAt(0).toUpperCase() : 'U';
 
-  console.log(campaign.creatorAvatar)
+  console.log(campaign.creatorAvatar);
   const tagToDisplay = formatCampaignCategory(campaign.category);
-  
+
   // Determine comments count:
   // 1. Prefer _count.comments if available (Prisma's aggregation)
   // 2. Fallback to campaign.comments.length if the full array is passed
@@ -78,18 +81,22 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
 
   // Attachments: Placeholder as it's not in the schema for Campaign directly.
   // If campaign.images should represent attachments, you can use campaign.images.length
-  const attachmentsDisplayCount = campaign.attachmentsCountPlaceholder ?? (campaign.images?.length > 1 ? campaign.images.length -1 : 0) ; // Example: using images count or a placeholder.
+  const attachmentsDisplayCount =
+    campaign.attachmentsCountPlaceholder ??
+    (campaign.images?.length > 1 ? campaign.images.length - 1 : 0); // Example: using images count or a placeholder.
 
   const dueDateDisplay = formatDateRelativeToToday(campaign.endDate);
 
-  const mainImage = campaign.images?.[0] || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3'; // Default placeholder
+  const mainImage =
+    campaign.images?.[0] ||
+    'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3'; // Default placeholder
 
   return (
     <Link href={`/campaign/${campaign.slug}`} passHref legacyBehavior>
       <motion.a
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
         className="block w-full cursor-pointer group"
       >
         <Card className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col p-5 md:p-6">

@@ -1,13 +1,12 @@
-import type { Metadata, Viewport } from 'next';
-import { Inter, Poppins } from 'next/font/google';
+import type { Metadata } from 'next';
+import { Poppins } from 'next/font/google';
 import './globals.css';
-import Navbar from '@/components/navbar';
-import Footer from '@/components/footer';
 import Providers from '@/components/providers';
-import WalletProvider from '@/context/walletContext';
+import { CustomWalletProvider } from '@/context/CustomWalletContext';
 import { headers } from 'next/headers';
 import { Toaster } from 'sonner';
 import NextTopLoader from 'nextjs-toploader';
+import WalletProvider from '@/context/walletContext';
 
 const poppins = Poppins({
   weight: ['400', '500', '600', '700'],
@@ -34,7 +33,9 @@ export default async function RootLayout({
       <body className={`${poppins.variable} font-sans antialiased`}>
         <NextTopLoader color="#145f63" showSpinner={false} />
         <WalletProvider cookies={cookies}>
-          <Providers>{children}</Providers>
+          <CustomWalletProvider>
+            <Providers>{children}</Providers>
+          </CustomWalletProvider>
         </WalletProvider>
         <Toaster />
       </body>

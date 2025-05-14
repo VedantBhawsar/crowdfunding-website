@@ -78,12 +78,12 @@ export default function CampaignPage() {
   const campaignSlug = params.campaignSlug as string;
   const searchParams = useSearchParams();
   const claimRewardId = searchParams.get('claim');
-  const {data: session} = useSession()
+  const { data: session } = useSession();
   const [claimAttempted, setClaimAttempted] = useState(false);
 
   // Function to handle pledge success
   function handlePledgeSuccess() {
-    setCampaign((prevCampaign) => {
+    setCampaign(prevCampaign => {
       if (!prevCampaign) return null;
       return {
         ...prevCampaign,
@@ -152,14 +152,14 @@ export default function CampaignPage() {
 
         // Fetch the campaign
         const res = await fetch(`/api/campaigns/${campaignSlug}`);
-        
+
         if (!res.ok) {
           throw new Error(`Error fetching campaign: ${res.status}`);
         }
-        
+
         const data = await res.json();
         setCampaign(data);
-        
+
         // Handle "?claim=xxx" parameter in URL
         if (claimRewardId && !claimAttempted && data.rewards) {
           setClaimAttempted(true);
@@ -179,11 +179,9 @@ export default function CampaignPage() {
     };
 
     fetchCampaign();
-  }, [campaignSlug, claimRewardId, handleClaimReward, claimAttempted]); // Add claimAttempted dependency
+  }, [campaignSlug]); // Add claimAttempted dependency
 
-  async function handleVote() {
-
-  }
+  async function handleVote() {}
 
   // --- Derived Data Calculations ---
   const calculateDaysLeft = (createdAt: Date | string, durationDays: number): number => {
@@ -233,7 +231,9 @@ export default function CampaignPage() {
       <div className="flex h-[70vh] w-full flex-col items-center justify-center space-y-4">
         <div className="text-center">
           <h2 className="text-2xl font-bold">Campaign Not Found</h2>
-          <p className="mt-2 text-muted-foreground">The campaign you&apos;re looking for doesn&apos;t exist.</p>
+          <p className="mt-2 text-muted-foreground">
+            The campaign you&apos;re looking for doesn&apos;t exist.
+          </p>
         </div>
         <Button onClick={() => router.push('/campaigns')} variant="outline">
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -290,8 +290,8 @@ export default function CampaignPage() {
             <div className="aspect-video w-full rounded-lg overflow-hidden bg-muted border">
               {/* Replace img with Next.js Image component */}
               <div className="relative w-full h-full">
-                <Image 
-                  src={campaign.images[0]} 
+                <Image
+                  src={campaign.images[0]}
                   alt={`${campaign.title} main visual`}
                   fill
                   style={{ objectFit: 'cover' }}
@@ -445,12 +445,20 @@ export default function CampaignPage() {
                             <Coins className="h-3 w-3 text-primary" />
                             <span>Funding: {milestone.fundingAmount} ETH</span>
                           </div>
-                          {milestone?.status !== 'COMPLETED' && campaign.backers?.some(backer => backer.userId === session?.user.id) && (
-                            <Button variant="outline" size="sm" className="h-7 text-xs" onClick={handleVote}>
-                              <Vote className="h-3 w-3 mr-1" />
-                              Vote to Release
-                            </Button>
-                          )}
+                          {milestone?.status !== 'COMPLETED' &&
+                            campaign.backers?.some(
+                              backer => backer.userId === session?.user.id
+                            ) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 text-xs"
+                                onClick={handleVote}
+                              >
+                                <Vote className="h-3 w-3 mr-1" />
+                                Vote to Release
+                              </Button>
+                            )}
                         </div>
                       )}
                     </CardContent>
@@ -577,16 +585,8 @@ export default function CampaignPage() {
                 currency: 'USD',
               }).format(reward.amount)}
             </Badge>
-            {isClaimable && (
-              <Badge className="bg-green-500 text-white">
-                Ready to Claim
-              </Badge>
-            )}
-            {isClaimed && (
-              <Badge className="bg-blue-500 text-white">
-                Claimed
-              </Badge>
-            )}
+            {isClaimable && <Badge className="bg-green-500 text-white">Ready to Claim</Badge>}
+            {isClaimed && <Badge className="bg-blue-500 text-white">Claimed</Badge>}
           </div>
         </CardHeader>
         <CardContent className="pb-3">
@@ -620,11 +620,7 @@ export default function CampaignPage() {
               Claimed
             </Button>
           ) : (
-            <Button
-              onClick={() => openPledgeModal(reward)}
-              variant="outline"
-              className="w-full"
-            >
+            <Button onClick={() => openPledgeModal(reward)} variant="outline" className="w-full">
               Select
             </Button>
           )}

@@ -19,7 +19,7 @@ import {
 
 interface IconInfo {
   id: string;
-  Component: typeof LucideIcon ;
+  Component: typeof LucideIcon;
   color: string;
   sizeClass?: string; // For central icon potentially
   wrapperSizeClass?: string; // for icon wrapper
@@ -46,10 +46,9 @@ const centerIconInfo: IconInfo = {
   fillCurrent: true,
 };
 
-
 const IntegrationShowcaseSection = () => {
-  const iconWrapperBaseSize = "w-10 h-10 md:w-12 md:h-12";
-  const iconItselfBaseSize = "w-5 h-5 md:w-6 md:h-6";
+  const iconWrapperBaseSize = 'w-10 h-10 md:w-12 md:h-12';
+  const iconItselfBaseSize = 'w-5 h-5 md:w-6 md:h-6';
 
   return (
     <div className="bg-white py-16 lg:py-24">
@@ -60,7 +59,7 @@ const IntegrationShowcaseSection = () => {
             className="lg:w-1/2 xl:w-5/12 text-center lg:text-left"
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             viewport={{ once: true }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-6 leading-tight">
@@ -69,7 +68,10 @@ const IntegrationShowcaseSection = () => {
               for Global Transparency & Trust
             </h2>
             <p className="text-gray-600 mb-8 text-base lg:text-lg">
-              Seamlessly connect your crowdfunding campaigns to the blockchain. Enable transparent, secure, and borderless funding for creators and backers worldwide. Our platform integrates with leading Web3 protocols to ensure every transaction is verifiable and every project is accessible to a global audience.
+              Seamlessly connect your crowdfunding campaigns to the blockchain. Enable transparent,
+              secure, and borderless funding for creators and backers worldwide. Our platform
+              integrates with leading Web3 protocols to ensure every transaction is verifiable and
+              every project is accessible to a global audience.
             </p>
 
             <Button
@@ -85,15 +87,34 @@ const IntegrationShowcaseSection = () => {
             className="lg:w-1/2 xl:w-7/12"
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
             viewport={{ once: true }}
           >
             <div className="relative bg-green-100/80 rounded-2xl p-6 sm:p-8 md:p-10 aspect-[4/3] md:aspect-video lg:aspect-[5/3.5] xl:min-h-[400px]">
               {/* Orbital Lines */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <svg width="100%" height="100%" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">
-                  <circle cx="100" cy="100" r="55" stroke="rgba(107, 114, 128, 0.15)" strokeWidth="1" fill="none" />
-                  <circle cx="100" cy="100" r="75" stroke="rgba(107, 114, 128, 0.15)" strokeWidth="1" fill="none" />
+                <svg
+                  width="100%"
+                  height="100%"
+                  viewBox="0 0 200 200"
+                  preserveAspectRatio="xMidYMid meet"
+                >
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="55"
+                    stroke="rgba(107, 114, 128, 0.15)"
+                    strokeWidth="1"
+                    fill="none"
+                  />
+                  <circle
+                    cx="100"
+                    cy="100"
+                    r="75"
+                    stroke="rgba(107, 114, 128, 0.15)"
+                    strokeWidth="1"
+                    fill="none"
+                  />
                 </svg>
               </div>
 
@@ -102,7 +123,7 @@ const IntegrationShowcaseSection = () => {
                 className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
                 initial={{ opacity: 0, scale: 0.5 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.4, ease: "easeOut" }}
+                transition={{ duration: 0.5, delay: 0.4, ease: 'easeOut' }}
                 viewport={{ once: true }}
               >
                 {/* @ts-ignore */}
@@ -114,16 +135,15 @@ const IntegrationShowcaseSection = () => {
 
               {/* Orbital Icons */}
               {orbitalIconsList.map((icon, index) => {
-                const angle = (index / orbitalIconsList.length) * 2 * Math.PI - (Math.PI / 2); // Start from top
-              const radiusPercentage = 38; // Percentage of the smaller dimension (approx)
-                
+                const angle = (index / orbitalIconsList.length) * 2 * Math.PI - Math.PI / 2; // Start from top
+                const radiusPercentage = 38; // Percentage of the smaller dimension (approx)
+
                 // For simplicity, using percentages for left/top based on typical aspect ratio
                 // x = 50% + R * cos(angle), y = 50% + R * sin(angle)
                 // These values position the center of the icon.
                 // Adjust with -translate-x-1/2 -translate-y-1/2
                 const xPos = 50 + radiusPercentage * Math.cos(angle);
                 const yPos = 50 + radiusPercentage * Math.sin(angle);
-
 
                 return (
                   <motion.div
@@ -137,14 +157,18 @@ const IntegrationShowcaseSection = () => {
                     }}
                     initial={{ opacity: 0, scale: 0.5 }}
                     whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.5 + index * 0.07, ease: "easeOut" }}
+                    transition={{ duration: 0.4, delay: 0.5 + index * 0.07, ease: 'easeOut' }}
                     viewport={{ once: true }}
                   >
                     {/* @ts-ignore */}
                     <icon.Component
                       className={`${icon.iconSizeClass || iconItselfBaseSize} ${icon.color}`}
-                      fill={icon.fillCurrent ? 'currentColor' : 'none' }
-                      strokeWidth={icon.id === 'triangle' || icon.id === 'slack' || icon.id === 'blocks' ? 1.5 : 2} // Thicker for filled typically
+                      fill={icon.fillCurrent ? 'currentColor' : 'none'}
+                      strokeWidth={
+                        icon.id === 'triangle' || icon.id === 'slack' || icon.id === 'blocks'
+                          ? 1.5
+                          : 2
+                      } // Thicker for filled typically
                     />
                   </motion.div>
                 );

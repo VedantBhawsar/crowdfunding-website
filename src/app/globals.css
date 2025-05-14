@@ -16,11 +16,11 @@ body {
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 192 72% 25%;  /* #142f32 - Dark teal */
+    --primary: 192 72% 25%; /* #142f32 - Dark teal */
     --primary-foreground: 0 0% 100%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
-    --accent: 90 100% 94%;  /* #e3ffcc - Light green */
+    --accent: 90 100% 94%; /* #e3ffcc - Light green */
     --accent-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
@@ -30,12 +30,12 @@ body {
     --input: 240 5.9% 90%;
     --ring: 192 72% 25%;
     --radius: 0.5rem;
-    --dark-gray: 0 0% 16%;  /* #282930 - Dark gray */
-    --medium-gray: 240 6% 58%;  /* #777c90 - Medium gray */
-    --chart-1: 192 72% 25%;  /* #142f32 - Dark teal */
-    --chart-2: 90 100% 94%;  /* #e3ffcc - Light green */
-    --chart-3: 240 6% 58%;  /* #777c90 - Medium gray */
-    --chart-4: 0 0% 16%;  /* #282930 - Dark gray */
+    --dark-gray: 0 0% 16%; /* #282930 - Dark gray */
+    --medium-gray: 240 6% 58%; /* #777c90 - Medium gray */
+    --chart-1: 192 72% 25%; /* #142f32 - Dark teal */
+    --chart-2: 90 100% 94%; /* #e3ffcc - Light green */
+    --chart-3: 240 6% 58%; /* #777c90 - Medium gray */
+    --chart-4: 0 0% 16%; /* #282930 - Dark gray */
     --chart-5: 27 87% 67%;
   }
 
@@ -46,11 +46,11 @@ body {
     --card-foreground: 0 0% 95%;
     --popover: 0 0% 9%;
     --popover-foreground: 0 0% 95%;
-    --primary: 192 72% 25%;  /* #142f32 - Dark teal */
+    --primary: 192 72% 25%; /* #142f32 - Dark teal */
     --primary-foreground: 0 0% 98%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
-    --accent: 90 100% 94%;  /* #e3ffcc - Light green */
+    --accent: 90 100% 94%; /* #e3ffcc - Light green */
     --accent-foreground: 240 5.9% 10%;
     --muted: 0 0% 15%;
     --muted-foreground: 240 5% 64.9%;
@@ -59,12 +59,12 @@ body {
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 192 72% 25%;
-    --dark-gray: 0 0% 16%;  /* #282930 - Dark gray */
-    --medium-gray: 240 6% 58%;  /* #777c90 - Medium gray */
-    --chart-1: 192 72% 25%;  /* #142f32 - Dark teal */
-    --chart-2: 90 100% 94%;  /* #e3ffcc - Light green */
-    --chart-3: 240 6% 58%;  /* #777c90 - Medium gray */
-    --chart-4: 0 0% 16%;  /* #282930 - Dark gray */
+    --dark-gray: 0 0% 16%; /* #282930 - Dark gray */
+    --medium-gray: 240 6% 58%; /* #777c90 - Medium gray */
+    --chart-1: 192 72% 25%; /* #142f32 - Dark teal */
+    --chart-2: 90 100% 94%; /* #e3ffcc - Light green */
+    --chart-3: 240 6% 58%; /* #777c90 - Medium gray */
+    --chart-4: 0 0% 16%; /* #282930 - Dark gray */
     --chart-5: 340 75% 55%;
   }
 }
@@ -86,7 +86,7 @@ body {
 
 .cursor-none button,
 .cursor-none a,
-.cursor-none [role="button"],
+.cursor-none [role='button'],
 .cursor-none input,
 .cursor-none select,
 .cursor-none textarea {

@@ -14,10 +14,10 @@ const ImageCarousel = ({ images }: { images: string[] }) => {
               <Card>
                 <CardContent className="flex aspect-video items-center justify-center p-0 rounded-lg overflow-hidden">
                   <div className="relative w-full h-full">
-                    <Image 
-                      alt={`image-${index}`} 
-                      src={url} 
-                      fill 
+                    <Image
+                      alt={`image-${index}`}
+                      src={url}
+                      fill
                       style={{ objectFit: 'cover' }}
                       sizes="(max-width: 768px) 100vw, 50vw"
                     />

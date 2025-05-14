@@ -3,14 +3,12 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { ThemeProvider } from '../theme-provider';
 import { SessionProvider } from 'next-auth/react';
-import { useAppKitAccount } from '@reown/appkit/react';
-import { WagmiConfig } from 'wagmi';
-import { config } from '@/config/wagmi';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
-  // Ensure we only mount the WagmiConfig provider on the client side
+  // Ensure we only mount the providers on the client side
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -24,15 +22,10 @@ export default function Providers({ children }: { children: ReactNode }) {
     );
   }
 
+  // Note: We don't need to create a query client here as it's already created in WalletProvider
   return (
-    <>
-      <ThemeProvider attribute="class" defaultTheme="light">
-        <SessionProvider>
-          <WagmiConfig config={config}>
-            {children}
-          </WagmiConfig>
-        </SessionProvider>
-      </ThemeProvider>
-    </>
+    <ThemeProvider attribute="class" defaultTheme="light">
+      <SessionProvider>{children}</SessionProvider>
+    </ThemeProvider>
   );
 }

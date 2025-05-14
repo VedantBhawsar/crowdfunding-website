@@ -3,14 +3,14 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/config/auth';
 import prismaClient from '@/lib/prismadb';
 
+// Mark this route as dynamic to prevent static generation
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     let id = searchParams.get('id');
     const session = await getServerSession(authOptions);
-
-
-    console.log(session?.user.id)
 
     if (!id) {
       id = session?.user?.id as string;

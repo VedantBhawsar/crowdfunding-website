@@ -48,10 +48,11 @@ function Footer() {
               <span className="text-xl font-bold">CrowdChain</span>
             </div>
             <p className="text-white/70 text-sm mb-4">
-              Decentralized crowdfunding powered by blockchain technology for transparent, secure fundraising.
+              Decentralized crowdfunding powered by blockchain technology for transparent, secure
+              fundraising.
             </p>
             <div className="flex space-x-3">
-              {socialLinks.map((item) => (
+              {socialLinks.map(item => (
                 <a
                   key={item.label}
                   href={item.href}
@@ -66,9 +67,12 @@ function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">Platform</h3>
             <ul className="space-y-2">
-              {footerLinks.platform.map((link) => (
+              {footerLinks.platform.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-white/70 hover:text-white text-sm transition-colors">
+                  <Link
+                    href={link.href}
+                    className="text-white/70 hover:text-white text-sm transition-colors"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -79,9 +83,12 @@ function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">Resources</h3>
             <ul className="space-y-2">
-              {footerLinks.resources.map((link) => (
+              {footerLinks.resources.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-white/70 hover:text-white text-sm transition-colors">
+                  <Link
+                    href={link.href}
+                    className="text-white/70 hover:text-white text-sm transition-colors"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -92,9 +99,12 @@ function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider mb-4">Company</h3>
             <ul className="space-y-2">
-              {footerLinks.company.map((link) => (
+              {footerLinks.company.map(link => (
                 <li key={link.name}>
-                  <Link href={link.href} className="text-white/70 hover:text-white text-sm transition-colors">
+                  <Link
+                    href={link.href}
+                    className="text-white/70 hover:text-white text-sm transition-colors"
+                  >
                     {link.name}
                   </Link>
                 </li>
@@ -109,10 +119,16 @@ function Footer() {
             © {new Date().getFullYear()} CrowdChain, all rights reserved.
           </div>
           <div className="flex space-x-6">
-            <Link href="/terms" className="text-white/50 hover:text-white text-sm transition-colors">
+            <Link
+              href="/terms"
+              className="text-white/50 hover:text-white text-sm transition-colors"
+            >
               Terms & Conditions
             </Link>
-            <Link href="/privacy" className="text-white/50 hover:text-white text-sm transition-colors">
+            <Link
+              href="/privacy"
+              className="text-white/50 hover:text-white text-sm transition-colors"
+            >
               Privacy Policy
             </Link>
           </div>

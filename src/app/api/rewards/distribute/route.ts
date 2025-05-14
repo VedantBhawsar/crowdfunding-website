@@ -3,14 +3,24 @@ import prismaClient from '@/lib/prismadb';
 import { NextResponse } from 'next/server';
 import nodemailer, { SentMessageInfo, Transporter } from 'nodemailer';
 import { Options } from 'nodemailer/lib/smtp-transport';
+import { distributeRewards } from '@/lib/blockchain';
 
-export async function GET() {
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes max execution time
+
+export async function GET(request: Request) {
   try {
+    // Verify the request is from Vercel Cron
+    const authHeader = request.headers.get('Authorization');
+    if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const mail = new SendMail();
     // Get rewards that are ready to be claimed but haven't been marked as ready yet
     const rewards = await prismaClient.reward.findMany({
       where: {
-        claimed: 0,
+        readyForClaimAt: null,
         deliveryDate: {
           not: null,
           lt: new Date(), // Only get rewards whose delivery date has passed
@@ -23,45 +33,125 @@ export async function GET() {
             slug: true,
           },
         },
+        backers: {
+          include: {
+            user: {
+              select: {
+                email: true,
+                name: true,
+                walletAddress: true,
+              },
+            },
+          },
+        },
       },
     });
 
     console.log(`Found ${rewards.length} rewards ready to be claimed`);
-    
+
+    const rewardContractAddress = process.env.REWARD_CONTRACT_ADDRESS;
+    if (!rewardContractAddress) {
+      console.error('REWARD_CONTRACT_ADDRESS is not defined in environment variables');
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Reward contract address not configured',
+        },
+        { status: 500 }
+      );
+    }
+
     // Process each reward
+    const results = {
+      processed: 0,
+      emailsSent: 0,
+      blockchainTransactions: 0,
+      errors: 0,
+    };
+
     for (const reward of rewards) {
-      // Update the reward status to ready for claiming
-      await prismaClient.reward.update({
-        where: {
-          id: reward.id,
-        },
-        data: {
-          claimed: 1, // Mark as ready for claiming
-          // readyForClaimAt field needs to be added to the Prisma schema
-          // readyForClaimAt: new Date(),
-        },
-      });
-      
-      // Find backers who selected this reward
-      const backers = await prismaClient.backers.findMany({
-        where: {
-          // rewardId field needs to be added to the Backers model in Prisma schema
-          // rewardId: reward.id,
-          campaignId: reward.campaignId,
-        },
-        include: {
-          user: {
-            select: {
-              email: true,
-              name: true,
+      try {
+        // Skip rewards with no backers
+        if (!reward.backers || reward.backers.length === 0) {
+          continue;
+        }
+
+        // Prepare blockchain distribution for this reward
+        const validBackers = reward.backers.filter(
+          backer => backer.user?.walletAddress && backer.amount > 0
+        );
+
+        if (validBackers.length > 0) {
+          const recipients = validBackers.map(backer => backer.user?.walletAddress as string);
+          const amounts = validBackers.map(() => reward.amount.toString()); // Same amount for each backer
+
+          // Distribute on blockchain
+          const blockchainResult = await distributeRewards(
+            rewardContractAddress,
+            recipients,
+            amounts
+          );
+
+          if (blockchainResult.success) {
+            results.blockchainTransactions++;
+
+            // Record blockchain transaction in database
+            await Promise.all(
+              validBackers.map(async backer => {
+                await prismaClient.transaction.create({
+                  data: {
+                    amount: reward.amount,
+                    userId: backer.userId,
+                    campaignId: reward.campaignId,
+                    rewardId: reward.id,
+                    status: 'COMPLETED',
+                    txHash: blockchainResult.txHash,
+                    metadata: {
+                      distributedAt: new Date(),
+                      rewardTitle: reward.title,
+                      blockNumber: blockchainResult.blockNumber,
+                      bulkDistribution: true,
+                    },
+                  },
+                });
+              })
+            );
+          } else {
+            console.error(
+              `Blockchain distribution failed for reward ${reward.id}:`,
+              blockchainResult.error
+            );
+            results.errors++;
+          }
+        }
+
+        // Update the reward status to ready for claiming
+        await prismaClient.reward.update({
+          where: {
+            id: reward.id,
+          },
+          data: {
+            readyForClaimAt: new Date(),
+          },
+        });
+
+        // Create activity for the reward being ready
+        await prismaClient.activity.create({
+          data: {
+            type: 'REWARD_CLAIMED',
+            description: `Reward "${reward.title}" is now ready to be claimed`,
+            campaignId: reward.campaignId,
+            metadata: {
+              rewardId: reward.id,
+              rewardTitle: reward.title,
+              txHash:
+                results.blockchainTransactions > 0 ? 'blockchain_distribution_complete' : undefined,
             },
           },
-        },
-      });
-      
-      // Send email notification to each backer who selected this reward
-      if (backers && backers.length > 0) {
-        for (const backer of backers) {
+        });
+
+        // Send email notification to each backer who selected this reward
+        for (const backer of reward.backers) {
           if (backer.user?.email) {
             await mail.sendEmail(
               backer.user.email,
@@ -71,22 +161,31 @@ export async function GET() {
               reward.campaign?.slug || '',
               reward.id
             );
+            results.emailsSent++;
           }
         }
+
+        results.processed++;
+      } catch (error) {
+        console.error(`Error processing reward ${reward.id}:`, error);
+        results.errors++;
       }
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      processed: rewards.length,
-      message: `Processed ${rewards.length} rewards and sent notifications`
+    return NextResponse.json({
+      success: true,
+      results,
+      message: `Processed ${results.processed} rewards, sent ${results.emailsSent} emails, completed ${results.blockchainTransactions} blockchain transactions`,
     });
   } catch (error) {
     console.error('Error distributing rewards:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -99,7 +198,6 @@ class SendMail {
       port: 465,
       secure: true,
       auth: {
-        // TODO: convert this to env variables
         user: process.env.NODEMAILER_EMAIL!,
         pass: process.env.NODEMAILER_PASSWORD!,
       },
@@ -120,9 +218,9 @@ class SendMail {
     }
 
     const claimUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/campaign/${campaignSlug}?claim=${rewardId}`;
-    
+
     const mailOptions = {
-      from: 'reward@crowdfundify.com',
+      from: process.env.NODEMAILER_EMAIL || 'rewards@crowdfundify.com',
       to: email,
       subject: `Your reward is ready: ${rewardTitle}`,
       html: `

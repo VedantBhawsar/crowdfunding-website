@@ -15,9 +15,9 @@ const pricingPlans = [
       'Community support',
       'Basic analytics dashboard',
       'Email notifications',
-      'Single blockchain network'
+      'Single blockchain network',
     ],
-    popular: false // Not used in this design style
+    popular: false, // Not used in this design style
   },
   {
     name: 'Enterprise', // This is the "Enterprise" from the image
@@ -29,26 +29,27 @@ const pricingPlans = [
       'Custom smart contract development', // Example: Image says "Dedicated account manager"
       'Multi-chain deployment', // Example: Image says "Tailored manufacturing solutions"
       'Advanced analytics', // Example: Image says "Predictive production optimization"
-      'Priority verification'
+      'Priority verification',
     ],
-    popular: false
+    popular: false,
   },
   {
     name: 'Pro Creator', // This is the "Professional" from the image
-    description: 'Designed for greater flexibility, this solution offers advanced tools for custom tailoring to your needs.', // Image desc for Professional
+    description:
+      'Designed for greater flexibility, this solution offers advanced tools for custom tailoring to your needs.', // Image desc for Professional
     price: 0.05, // This plan doesn't have a price displayed in the same way in the image.
     billing: 'ETH/month', // The image doesn't show price for Professional, only "Get Started"
-    features: [ // Features are not listed visually on the "Professional" card in the image
+    features: [
+      // Features are not listed visually on the "Professional" card in the image
       'Up to 5 active campaigns',
       'Priority technical support',
       'Advanced campaign tools',
       'Detailed analytics reports',
-      'Custom integrations'
+      'Custom integrations',
     ],
-    popular: true // Not directly used for styling, but identifies the special card
-  }
+    popular: true, // Not directly used for styling, but identifies the special card
+  },
 ];
-
 
 // Helper to format price display based on existing content
 const PriceDisplay = ({ price, billing }: { price: number; billing: string }) => {
@@ -71,22 +72,23 @@ const PriceDisplay = ({ price, billing }: { price: number; billing: string }) =>
   if (billing.toLowerCase().includes('/month')) {
     frequency = '/month';
   } else if (price !== 0 && !billing.toLowerCase().includes('eth')) {
-     // If billing is something else entirely like "per campaign" and price is not 0
-     unit = ` ${billing}`;
+    // If billing is something else entirely like "per campaign" and price is not 0
+    unit = ` ${billing}`;
   }
-
 
   return (
     <>
       <span className="text-4xl font-bold text-white">
-        {mainPrice.replace(/ETH$/, '')} {/* Remove ETH if it was part of mainPrice calculation to avoid double ETH */}
-        {billing.toLowerCase().includes('eth') && <span className="text-3xl lg:text-4xl align-baseline">ETH</span>}
+        {mainPrice.replace(/ETH$/, '')}{' '}
+        {/* Remove ETH if it was part of mainPrice calculation to avoid double ETH */}
+        {billing.toLowerCase().includes('eth') && (
+          <span className="text-3xl lg:text-4xl align-baseline">ETH</span>
+        )}
       </span>
       <span className="text-slate-400 text-sm">{frequency || unit}</span>
     </>
   );
 };
-
 
 const PricingSection = () => {
   const topPlans = pricingPlans.filter(plan => plan.name !== 'Pro Creator');
@@ -130,7 +132,9 @@ const PricingSection = () => {
               <h3 className="text-xl font-semibold text-white mb-1">{plan.name}</h3>
               <p className="text-sm text-slate-400 mb-6 min-h-[40px]">{plan.description}</p>
 
-              <div className="mb-8 min-h-[60px]"> {/* Min height for price alignment */}
+              <div className="mb-8 min-h-[60px]">
+                {' '}
+                {/* Min height for price alignment */}
                 <PriceDisplay price={plan.price} billing={plan.billing} />
               </div>
 
@@ -146,14 +150,19 @@ const PricingSection = () => {
               </div>
 
               <ul className="space-y-3 mt-auto text-sm text-slate-300">
-                {plan.features.slice(0, 4).map((feature, i) => ( // Max 4 features like image
-                  <li key={i} className="flex items-start">
-                    <div className="w-4 h-4 bg-slate-600 rounded-full flex items-center justify-center mr-3 mt-0.5 shrink-0">
-                      <CheckIcon className="h-2.5 w-2.5 text-white" />
-                    </div>
-                    <span>{feature}</span>
-                  </li>
-                ))}
+                {plan.features.slice(0, 4).map(
+                  (
+                    feature,
+                    i // Max 4 features like image
+                  ) => (
+                    <li key={i} className="flex items-start">
+                      <div className="w-4 h-4 bg-slate-600 rounded-full flex items-center justify-center mr-3 mt-0.5 shrink-0">
+                        <CheckIcon className="h-2.5 w-2.5 text-white" />
+                      </div>
+                      <span>{feature}</span>
+                    </li>
+                  )
+                )}
               </ul>
             </motion.div>
           ))}
@@ -170,9 +179,7 @@ const PricingSection = () => {
           >
             {/* Title matches image */}
             <h3 className="text-2xl font-semibold text-white mb-2">Professional</h3>
-            <p className="text-slate-300 mb-8 max-w-md mx-auto text-sm">
-              {bottomPlan.description}
-            </p>
+            <p className="text-slate-300 mb-8 max-w-md mx-auto text-sm">{bottomPlan.description}</p>
             <Button className="bg-lime-300 hover:bg-lime-400 text-slate-900 font-semibold px-10 py-3 rounded-lg transition-colors">
               Get Started
             </Button>

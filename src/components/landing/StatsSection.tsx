@@ -39,15 +39,18 @@ const BenefitItem: React.FC<BenefitItemProps> = ({ title, description, delay }) 
 const benefitsData = [
   {
     title: 'Transparent Funding',
-    description: 'All transactions are recorded on-chain, ensuring every contribution and payout is visible and verifiable by anyone.',
+    description:
+      'All transactions are recorded on-chain, ensuring every contribution and payout is visible and verifiable by anyone.',
   },
   {
     title: 'Global Backer Access',
-    description: 'Anyone, anywhere can support projects using crypto, breaking down borders and enabling global participation.',
+    description:
+      'Anyone, anywhere can support projects using crypto, breaking down borders and enabling global participation.',
   },
   {
     title: 'Automated & Secure Payouts',
-    description: 'Smart contracts automate fund releases, reducing risk and ensuring creators get paid only when milestones are met.',
+    description:
+      'Smart contracts automate fund releases, reducing risk and ensuring creators get paid only when milestones are met.',
   },
 ];
 
@@ -76,7 +79,6 @@ const KeyBenefitsSection = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
   };
 
-
   return (
     <section className="bg-white py-16 lg:py-24">
       <div className="container mx-auto px-4">
@@ -102,19 +104,21 @@ const KeyBenefitsSection = () => {
                 </div>
               </div>
 
-              {projectStatuses.map((status) => (
+              {projectStatuses.map(status => (
                 <div key={status.label} className="flex items-center text-xs text-gray-500 mb-2.5">
                   <span className="w-1/3 truncate pr-2">{status.label}</span>
-                  <div className={`flex-grow h-1.5 bg-gray-200 rounded-sm mx-1 ${status.barWidth}`}></div>
-                  <span className="w-1/6 text-right font-medium text-gray-700">{status.percentage}</span>
+                  <div
+                    className={`flex-grow h-1.5 bg-gray-200 rounded-sm mx-1 ${status.barWidth}`}
+                  ></div>
+                  <span className="w-1/6 text-right font-medium text-gray-700">
+                    {status.percentage}
+                  </span>
                 </div>
               ))}
             </div>
 
             {/* Floating Project Card with Bar Chart */}
-            <motion.div 
-              className="bg-white rounded-xl p-5 md:p-6 shadow-2xl relative z-10 lg:-mt-10 lg:ml-4 transform transition-all duration-300 hover:shadow-3xl hover:-translate-y-1"
-            >
+            <motion.div className="bg-white rounded-xl p-5 md:p-6 shadow-2xl relative z-10 lg:-mt-10 lg:ml-4 transform transition-all duration-300 hover:shadow-3xl hover:-translate-y-1">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center">
                   <div className="p-2 bg-lime-100 rounded-md mr-2.5">
@@ -149,7 +153,8 @@ const KeyBenefitsSection = () => {
               Key Benefits of Decentralized Crowdfunding
             </h2>
             <p className="text-gray-600 mb-8 lg:mb-10 text-base">
-              Our platform empowers creators and backers with transparency, security, and global reach through blockchain technology.
+              Our platform empowers creators and backers with transparency, security, and global
+              reach through blockchain technology.
             </p>
 
             <div>

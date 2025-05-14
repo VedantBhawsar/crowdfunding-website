@@ -3,13 +3,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   Icon as LucideIcon, // For type hinting
-  Sparkles,         // Production and Assembly
-  Blocks,           // Custom Manufacturing (geometric, like components)
-  Wrench,           // Quality Control
-  Shield,           // Technology and Innovation
-  Box,              // Packaging and Logistics
-  TrendingUp,       // Consulting Market Research
-  ArrowUpRight,     // For the card link arrow
+  Sparkles, // Production and Assembly
+  Blocks, // Custom Manufacturing (geometric, like components)
+  Wrench, // Quality Control
+  Shield, // Technology and Innovation
+  Box, // Packaging and Logistics
+  TrendingUp, // Consulting Market Research
+  ArrowUpRight, // For the card link arrow
 } from 'lucide-react';
 
 interface ServiceItem {
@@ -82,7 +82,9 @@ const ManufacturingServicesSection = () => {
   };
 
   return (
-    <div className="bg-slate-900 py-16 lg:py-24"> {/* Main dark background, e.g., #0F172A */}
+    <div className="bg-slate-900 py-16 lg:py-24">
+      {' '}
+      {/* Main dark background, e.g., #0F172A */}
       <div className="container mx-auto px-4">
         <motion.div
           className="max-w-3xl mx-auto text-center mb-12 lg:mb-16"

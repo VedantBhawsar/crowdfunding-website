@@ -3,6 +3,9 @@ import { NextResponse, NextRequest } from 'next/server';
 import { CampaignStatus, CampaignCategory, Prisma } from '@prisma/client';
 import prismaClient from '@/lib/prismadb';
 
+// Mark this route as dynamic to prevent static generation
+export const dynamic = 'force-dynamic';
+
 const DEFAULT_LIMIT = 6;
 const MAX_LIMIT = 50;
 
@@ -57,8 +60,9 @@ export async function GET(request: NextRequest) {
       // Validate and convert strings to CampaignCategory enum values
       const validCategories = categoryStrings
         .map(catStr => catStr.trim().toUpperCase()) // Normalize input
-        .filter((catStr): catStr is CampaignCategory =>
-          Object.values(CampaignCategory).includes(catStr as CampaignCategory) // Check if it's a valid enum member
+        .filter(
+          (catStr): catStr is CampaignCategory =>
+            Object.values(CampaignCategory).includes(catStr as CampaignCategory) // Check if it's a valid enum member
         );
 
       if (validCategories.length > 0) {
@@ -68,19 +72,19 @@ export async function GET(request: NextRequest) {
 
     // --- Status Filtering (Corrected Validation Approach) ---
     if (statusesParam) {
-        const statusStrings = statusesParam.split(',').filter(Boolean);
-        // Validate and convert strings to CampaignStatus enum values
-        const validStatuses = statusStrings
-          .map(statusStr => statusStr.trim().toUpperCase()) // Normalize input
-          .filter((statusStr): statusStr is CampaignStatus =>
+      const statusStrings = statusesParam.split(',').filter(Boolean);
+      // Validate and convert strings to CampaignStatus enum values
+      const validStatuses = statusStrings
+        .map(statusStr => statusStr.trim().toUpperCase()) // Normalize input
+        .filter(
+          (statusStr): statusStr is CampaignStatus =>
             Object.values(CampaignStatus).includes(statusStr as CampaignStatus) // Check if it's a valid enum member
-          );
+        );
 
-        if (validStatuses.length > 0) {
-          where.status = { in: validStatuses }; // Use the array of valid enum values
-        }
+      if (validStatuses.length > 0) {
+        where.status = { in: validStatuses }; // Use the array of valid enum values
+      }
     }
-
 
     // --- Sorting Logic ---
     const orderBy = orderByMap[sortBy] || { createdAt: 'desc' };
@@ -108,7 +112,6 @@ export async function GET(request: NextRequest) {
       hasMore,
       currentPage: page,
     });
-
   } catch (error) {
     console.error('API Error fetching campaigns:', error);
     // Provide a more specific error message if possible, but avoid leaking sensitive details

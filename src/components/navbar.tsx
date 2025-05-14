@@ -61,13 +61,13 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
           <Link href="/" className="flex items-center font-bold text-xl text-primary">
-            <Factory className="h-8 w-8 text-teal-600" />
-            <span className="ml-2 text-2xl font-bold text-gray-800">Crowdfundify</span>
+            <Factory className="h-6 w-6 text-teal-600" />
+            <span className="ml-2 text-lg font-bold text-gray-800">Crowdfundify</span>
           </Link>
 
           {/* Desktop Nav Links */}
           <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
+            {navLinks.map(link => (
               <Link
                 key={link.label}
                 href={link.url}
@@ -85,7 +85,10 @@ const Navbar = () => {
             ) : status === 'unauthenticated' ? (
               <>
                 <Link href="/signin">
-                  <Button variant="outline" className="rounded-lg px-6 py-2.5 text-sm font-semibold">
+                  <Button
+                    variant="outline"
+                    className="rounded-lg px-6 py-2.5 text-sm font-semibold"
+                  >
                     Sign In
                   </Button>
                 </Link>
@@ -144,7 +147,7 @@ const Navbar = () => {
                 exit="hidden"
                 className="flex flex-col p-4 space-y-4"
               >
-                {navLinks.map((link) => (
+                {navLinks.map(link => (
                   <motion.li key={link.label} variants={itemVariants}>
                     <Link
                       href={link.url}
@@ -161,7 +164,10 @@ const Navbar = () => {
                   ) : status === 'unauthenticated' ? (
                     <>
                       <Link href="/signin">
-                        <Button variant="outline" className="w-full rounded-lg px-6 py-2.5 text-sm font-semibold">
+                        <Button
+                          variant="outline"
+                          className="w-full rounded-lg px-6 py-2.5 text-sm font-semibold"
+                        >
                           Sign In
                         </Button>
                       </Link>
@@ -184,7 +190,14 @@ const Navbar = () => {
                           <DropdownMenuItem asChild>
                             <Link href="/account">Account</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => { setIsMenuOpen(false); signOut(); }}>Log out</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setIsMenuOpen(false);
+                              signOut();
+                            }}
+                          >
+                            Log out
+                          </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
