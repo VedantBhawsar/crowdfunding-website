@@ -211,7 +211,7 @@ const AccountPage = () => {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 px-4 mt-10">
       <div className="flex items-center gap-6 mb-8">
         <div className="relative group">
           <Avatar className="h-24 w-24">

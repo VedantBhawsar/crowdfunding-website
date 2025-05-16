@@ -16,7 +16,7 @@ export default function Providers({ children }: { children: ReactNode }) {
   if (!mounted) {
     // Return a placeholder with the same structure to avoid layout shift
     return (
-      <ThemeProvider attribute="class" defaultTheme="light">
+      <ThemeProvider attribute="class" defaultTheme="system">
         <SessionProvider>{children}</SessionProvider>
       </ThemeProvider>
     );
@@ -24,7 +24,7 @@ export default function Providers({ children }: { children: ReactNode }) {
 
   // Note: We don't need to create a query client here as it's already created in WalletProvider
   return (
-    <ThemeProvider attribute="class" defaultTheme="light">
+    <ThemeProvider attribute="class" defaultTheme="system">
       <SessionProvider>{children}</SessionProvider>
     </ThemeProvider>
   );

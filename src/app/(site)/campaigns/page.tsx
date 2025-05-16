@@ -2,17 +2,23 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { Campaign, CampaignStatus, CampaignCategory } from '@prisma/client'; // Ensure CampaignCategory is imported if used in FilterState
 import Link from 'next/link';
-// useRouter is not used in this component, can be removed if not needed elsewhere
-// import { useRouter } from 'next/navigation';
 import { useDebounce } from 'use-debounce';
-// AnimatePresence is not used in the provided snippet, can be removed if not needed
-// import { AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, AlertCircle } from 'lucide-react';
+import {
+  Search,
+  Loader2,
+  AlertCircle,
+  Filter,
+  Plus,
+  Sparkles,
+  FileText,
+  RefreshCw,
+} from 'lucide-react';
 import CampaignFilterModel, { FilterState } from '@/components/campaign/CampaignFilterModel';
 import CampaignCard from '@/components/campaign/CampaignCard';
 import { create as createZustand } from 'zustand';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface CampaignWithCounts extends Campaign {
   _count?: {
@@ -24,19 +30,18 @@ interface CampaignWithCounts extends Campaign {
 interface CampaignsApiResponse {
   data: CampaignWithCounts[];
   hasMore: boolean;
-  currentPage: number; // The page number returned by the API
+  currentPage: number;
 }
 
 // Default filter state
 const defaultFilters: FilterState = {
-  categories: [], // Ensure FilterState uses CampaignCategory[] if needed
+  categories: [],
   statuses: [CampaignStatus.ACTIVE],
   sortBy: 'createdAt_desc',
 };
 
 const ITEMS_PER_PAGE = 6;
 
-// --- Zustand Store Definition ---
 interface CampaignStoreState {
   campaigns: CampaignWithCounts[];
   setCampaigns: (campaigns: CampaignWithCounts[]) => void;
@@ -53,9 +58,9 @@ interface CampaignStoreState {
   setSearchTerm: (term: string) => void;
   filters: FilterState;
   setFilters: (filters: FilterState) => void;
-  page: number; // Current page *loaded*
+  page: number;
   setPage: (page: number) => void;
-  resetForNewQuery: () => void; // Helper action to reset state
+  resetForNewQuery: () => void;
 }
 
 const useStore = createZustand<CampaignStoreState>(set => ({
@@ -105,6 +110,7 @@ const CampaignsPage = () => {
     resetForNewQuery,
   } = useStore();
 
+  const [isFilterModelOpen, setIsFilterModelOpen] = useState(false);
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
   const loaderRef = useRef<HTMLDivElement | null>(null); // For IntersectionObserver
 
@@ -232,6 +238,7 @@ const CampaignsPage = () => {
   // Handler for applying filters from the modal
   const handleApplyFilters = (newFilters: FilterState) => {
     setFilters(newFilters); // Update filters in the store, triggering the effect above
+    setIsFilterModelOpen(false);
   };
 
   // Handler for search input changes
@@ -239,86 +246,301 @@ const CampaignsPage = () => {
     setSearchTerm(event.target.value); // Update search term in the store
   };
 
+  const totalActiveFilters = (filters.categories.length || 0) + (filters.statuses.length || 0);
+
   // --- JSX Rendering ---
   return (
-    <div className="container mx-auto py-8 ">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <div className="flex flex-col">
-          <h1 className="text-3xl font-bold tracking-tight">Discover Campaigns</h1>
-          <p className="text-muted-foreground">Explore amazing projects and back your favorites.</p>
+    <div className="min-h-screen bg-gradient-to-b from-white to-slate-50/80 pt-16">
+      {/* Page header with gradient background */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-teal-700 via-teal-600 to-teal-700">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
         </div>
-        <Link href="/campaign/create">
-          <Button>Start a Campaign</Button>
-        </Link>
+
+        {/* Decorative patterns */}
+        <div className="absolute top-5 right-5 opacity-20 hidden lg:block">
+          <svg
+            width="80"
+            height="80"
+            viewBox="0 0 120 120"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="20" cy="20" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="60" cy="20" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="100" cy="20" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="20" cy="60" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="60" cy="60" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="100" cy="60" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="20" cy="100" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="60" cy="100" r="8" fill="rgba(255, 255, 255, 0.2)" />
+            <circle cx="100" cy="100" r="8" fill="rgba(255, 255, 255, 0.2)" />
+          </svg>
+        </div>
+
+        <div className="container max-w-7xl mx-auto px-4 py-12 sm:py-14 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6"
+          >
+            <div className="flex flex-col">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="mb-3"
+              >
+                <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-medium border border-white/25 backdrop-blur-sm">
+                  <span className="flex h-4 w-4 items-center justify-center">
+                    <span className="absolute h-2.5 w-2.5 animate-ping rounded-full bg-white opacity-75"></span>
+                    <span className="relative rounded-full h-1.5 w-1.5 bg-white"></span>
+                  </span>
+                  Discover Projects
+                </span>
+              </motion.div>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-2">
+                Discover Campaigns
+              </h1>
+              <p className="text-teal-100 max-w-2xl">
+                Explore innovative projects seeking funding or start your own campaign today.
+              </p>
+            </div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              <Link href="/campaign/create">
+                <Button
+                  size="lg"
+                  className="bg-white text-teal-700 hover:text-teal-800 hover:bg-white/95 shadow-md"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Campaign
+                </Button>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
       </div>
 
-      {/* Search and Filter Bar - Sticky */}
-      <div className="mb-8 flex flex-col sm:flex-row items-center w-full gap-4 sticky top-0 bg-background py-4 z-10 border-b">
-        <div className="relative w-full sm:flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search by title, description, creator..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
-            aria-label="Search campaigns"
-          />
-        </div>
-        <CampaignFilterModel currentFilters={filters} onApplyFilters={handleApplyFilters} />
-      </div>
-
-      {/* Content Area: Loading, Error, No Results, or Campaign Grid */}
-      <div className="min-h-[40vh]">
-        {' '}
-        {/* Ensure minimum height */}
-        {isInitialLoading ? (
-          <div className="flex justify-center items-center h-full pt-16">
-            <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          </div>
-        ) : error && campaigns.length === 0 ? ( // Show critical error only if initial load failed
-          <div className="text-center py-10 px-4 border border-destructive/50 bg-destructive/10 rounded-lg">
-            <AlertCircle className="mx-auto h-10 w-10 text-destructive mb-3" />
-            <h2 className="text-xl font-semibold text-destructive mb-2">
-              Failed to load campaigns
-            </h2>
-            <p className="text-destructive/80 mb-4">{error}</p>
-            <Button variant="destructive" onClick={() => fetchCampaignsForPage(1, true)}>
-              Try Again
+      <div className="container max-w-7xl mx-auto px-4 py-8 sm:py-12">
+        {/* Search and Filter Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mb-8 sm:mb-10 bg-white p-4 sm:p-6 rounded-xl shadow-md border border-slate-100"
+        >
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <Search className="h-4 w-4 text-slate-400" />
+              </div>
+              <Input
+                type="search"
+                placeholder="Search campaigns..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="pl-10 h-11 border-slate-200 focus:border-teal-500 shadow-sm"
+              />
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsFilterModelOpen(true)}
+              className="sm:w-auto h-11 bg-slate-50 border-slate-200 hover:bg-slate-100 flex gap-2 items-center"
+            >
+              <Filter className="h-4 w-4" />
+              <span>Filters</span>
+              {totalActiveFilters > 0 && (
+                <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-teal-100 text-xs font-medium text-teal-600">
+                  {totalActiveFilters}
+                </span>
+              )}
             </Button>
           </div>
-        ) : !isInitialLoading && campaigns.length === 0 ? ( // No results found after initial load
-          <div className="text-center py-10 px-4 border border-dashed rounded-lg h-full flex flex-col justify-center items-center">
-            <Search className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold text-muted-foreground">No Campaigns Found</h2>
-            <p className="text-muted-foreground/80 mt-2">
-              Try adjusting your search or filter criteria.
-            </p>
-          </div>
-        ) : (
-          // Display Campaign Grid
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaigns.map(campaign => (
-                <CampaignCard campaign={campaign} key={`${campaign.id}-${campaign.createdAt}`} /> // Use a more stable key if possible
-              ))}
-            </div>
 
-            {/* Loader/End Message for Infinite Scroll */}
-            <div ref={loaderRef} className="h-16 flex justify-center items-center mt-8">
-              {isLoadingMore && <Loader2 className="h-8 w-8 animate-spin text-primary" />}
-              {!isLoadingMore && !hasMore && campaigns.length > 0 && (
-                <p className="text-sm text-muted-foreground">You&apos;ve reached the end!</p>
+          {/* Active Filters Summary */}
+          {(filters.categories.length > 0 ||
+            filters.statuses.length !== 1 ||
+            filters.statuses[0] !== CampaignStatus.ACTIVE) && (
+            <div className="mt-4 flex flex-wrap gap-2 items-center text-sm text-slate-600">
+              <span className="font-medium">Active filters:</span>
+              {filters.categories.length > 0 && (
+                <span className="px-2 py-1 rounded-md bg-teal-50 text-teal-700 border border-teal-100">
+                  {filters.categories.length === 1
+                    ? filters.categories[0].toLowerCase().replace('_', ' ')
+                    : `${filters.categories.length} categories`}
+                </span>
               )}
-              {/* Show non-critical error if loading *more* failed */}
-              {!isLoadingMore && error && page > 1 && (
-                <p className="text-sm text-destructive">Error loading more campaigns. {error}</p>
+              {(filters.statuses.length !== 1 || filters.statuses[0] !== CampaignStatus.ACTIVE) && (
+                <span className="px-2 py-1 rounded-md bg-blue-50 text-blue-700 border border-blue-100">
+                  {filters.statuses.length === 1
+                    ? filters.statuses[0].toLowerCase().replace('_', ' ')
+                    : `${filters.statuses.length} statuses`}
+                </span>
               )}
+              <button
+                onClick={() => setFilters(defaultFilters)}
+                className="text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
+              >
+                <RefreshCw className="h-3 w-3" />
+                Reset
+              </button>
             </div>
-          </>
-        )}
+          )}
+        </motion.div>
+
+        {/* Campaign Grid */}
+        <div className="relative min-h-[200px]">
+          {/* Loading indicator for initial load */}
+          <AnimatePresence>
+            {isInitialLoading && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm z-10 rounded-xl"
+              >
+                <Loader2 className="h-8 w-8 text-teal-600 animate-spin mb-3" />
+                <p className="text-slate-600 font-medium">Loading campaigns...</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Error display */}
+          {error && !isInitialLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-4 sm:p-6 rounded-xl bg-red-50 border border-red-200 mb-6 flex items-start gap-3"
+            >
+              <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-medium text-red-800 mb-1">Error loading campaigns</h3>
+                <p className="text-sm text-red-700">{error}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    resetForNewQuery();
+                    fetchCampaignsForPage(1, true);
+                  }}
+                  className="mt-3 bg-white hover:bg-red-50 border-red-200 text-red-700"
+                >
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+                  Try again
+                </Button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Empty state */}
+          {!isInitialLoading && !error && campaigns.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-8 sm:p-10 rounded-xl bg-slate-50 border border-slate-200 text-center flex flex-col items-center justify-center"
+            >
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <FileText className="h-8 w-8 text-slate-400" />
+              </div>
+              <h3 className="text-xl font-semibold text-slate-800 mb-2">No Campaigns Found</h3>
+              <p className="text-slate-600 max-w-md mb-6">
+                {searchTerm || totalActiveFilters > 0
+                  ? "We couldn't find any campaigns matching your filters. Try adjusting your search criteria."
+                  : 'There are no campaigns available at the moment. Be the first to create one!'}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {(searchTerm || totalActiveFilters > 0) && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchTerm('');
+                      setFilters(defaultFilters);
+                    }}
+                    className="border-slate-300"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Reset Filters
+                  </Button>
+                )}
+                <Link href="/campaign/create">
+                  <Button className="bg-teal-600 hover:bg-teal-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                </Link>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Campaign grid */}
+          {!isInitialLoading && !error && campaigns.length > 0 && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+                {campaigns.map((campaign, index) => (
+                  <motion.div
+                    key={campaign.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.4,
+                      delay: Math.min(0.1 + index * 0.05, 0.5), // cap the delay for large numbers of items
+                      ease: 'easeOut',
+                    }}
+                  >
+                    <CampaignCard campaign={campaign} />
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Loader for infinite scrolling */}
+              {hasMore && (
+                <div ref={loaderRef} className="flex justify-center py-8">
+                  {isLoadingMore ? (
+                    <div className="flex flex-col items-center">
+                      <Loader2 className="h-6 w-6 text-teal-600 animate-spin mb-2" />
+                      <p className="text-sm text-slate-500">Loading more campaigns...</p>
+                    </div>
+                  ) : (
+                    <div className="h-16 flex items-center justify-center">
+                      <span className="text-sm text-slate-400">Scroll for more</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* End of results message */}
+              {!hasMore && campaigns.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-8 text-sm text-slate-500"
+                >
+                  <div className="w-12 h-12 mx-auto rounded-full bg-teal-50 flex items-center justify-center mb-3">
+                    <Sparkles className="h-6 w-6 text-teal-400" />
+                  </div>
+                  <p>You&apos;ve reached the end of the list</p>
+                </motion.div>
+              )}
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Campaign Filter Modal */}
+      <CampaignFilterModel
+        isOpen={isFilterModelOpen}
+        onClose={() => setIsFilterModelOpen(false)}
+        currentFilters={filters}
+        onApplyFilters={handleApplyFilters}
+      />
     </div>
   );
 };

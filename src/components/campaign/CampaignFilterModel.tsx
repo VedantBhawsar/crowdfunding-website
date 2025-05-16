@@ -56,15 +56,18 @@ export interface FilterState {
 }
 
 interface CampaignFilterModelProps {
+  isOpen: boolean;
+  onClose: () => void;
   currentFilters: FilterState;
   onApplyFilters: (filters: FilterState) => void;
 }
 
 const CampaignFilterModel: React.FC<CampaignFilterModelProps> = ({
+  isOpen,
+  onClose,
   currentFilters,
   onApplyFilters,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>(currentFilters.categories);
   const [selectedStatuses, setSelectedStatuses] = useState<CampaignStatus[]>(
     currentFilters.statuses
@@ -94,7 +97,7 @@ const CampaignFilterModel: React.FC<CampaignFilterModelProps> = ({
       statuses: selectedStatuses,
       sortBy: sortBy,
     });
-    setIsOpen(false); // Close dialog on apply
+    onClose(); // Close dialog on apply
   };
 
   const handleClear = () => {
@@ -108,17 +111,11 @@ const CampaignFilterModel: React.FC<CampaignFilterModelProps> = ({
       statuses: [CampaignStatus.ACTIVE],
       sortBy: 'createdAt_desc',
     });
-    setIsOpen(false);
+    onClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="flex-shrink-0">
-          <Settings2 className="mr-2 h-4 w-4" />
-          Filters
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[480px]">
         <DialogHeader>
           <DialogTitle>Filter & Sort Campaigns</DialogTitle>

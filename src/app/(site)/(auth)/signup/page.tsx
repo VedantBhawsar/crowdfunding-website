@@ -2,7 +2,14 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +19,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { Progress } from '@/components/ui/progress';
 
 // === Define Icons ===
 const IconIdea = () => (
@@ -255,7 +265,7 @@ export default function SignupPage() {
 
     try {
       // Call your API to register the user
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -270,38 +280,35 @@ export default function SignupPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to create account');
+        throw new Error(data.message || 'Registration failed');
       }
 
-      // Show success message
-      toast.success('Account created successfully!');
+      // Success - sign in the user
+      toast.success('Account created successfully! Signing you in...');
 
-      // Sign in the user automatically after successful registration
-      const signInResult = await signIn('credentials', {
+      // Sign in the user
+      const result = await signIn('credentials', {
         email: formData.email,
         password: formData.password,
         redirect: false,
       });
 
-      if (signInResult?.error) {
-        // If auto sign-in fails, redirect to sign-in page
+      if (result?.error) {
+        // If sign-in fails after registration, redirect to sign-in page
+        toast.info('Please sign in with your new account');
         router.push('/signin');
-      } else if (signInResult?.url) {
-        // Redirect to onboarding or dashboard
-        router.push('/onboarding');
       } else {
-        router.push('/dashboard');
+        // Redirect to onboarding
+        router.push('/onboarding');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Registration error:', error);
-      setSignupError(
-        error instanceof Error ? error.message : 'Failed to create account. Please try again.'
-      );
+      setSignupError(error.message || 'Failed to create account. Please try again.');
       setIsLoadingSignup(false);
     }
   };
 
-  // Handle Google sign-up
+  // Handle Google signup
   const handleGoogleSignup = async () => {
     setIsLoadingGoogle(true);
     setSignupError(null);
@@ -312,30 +319,58 @@ export default function SignupPage() {
       });
       // The redirect is handled by NextAuth.js
     } catch (error) {
-      console.error('Google sign-up error:', error);
-      setSignupError('Failed to sign up with Google. Please try again.');
+      console.error('Google sign-in error:', error);
+      setSignupError('Failed to sign in with Google. Please try again.');
       setIsLoadingGoogle(false);
     }
   };
 
+  // Password strength indicator color
+  const getPasswordStrengthColor = () => {
+    switch (passwordStrength) {
+      case 'weak':
+        return 'bg-red-500';
+      case 'medium':
+        return 'bg-yellow-500';
+      case 'strong':
+        return 'bg-green-500';
+      default:
+        return 'bg-slate-200';
+    }
+  };
+
+  // Password strength progress value
+  const getPasswordStrengthProgress = () => {
+    switch (passwordStrength) {
+      case 'weak':
+        return 33;
+      case 'medium':
+        return 66;
+      case 'strong':
+        return 100;
+      default:
+        return 0;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="container mx-auto grid max-w-6xl grid-cols-1 gap-12 md:grid-cols-2 md:items-center">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background p-4">
+      <div className="container mx-auto grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16 lg:items-center">
         {/* Left Column: Branding & Visuals */}
         <motion.div
-          className="hidden min-h-[250px] flex-col items-center justify-center space-y-6 text-center md:flex"
+          className="hidden flex-col items-center justify-center space-y-8 text-center lg:flex"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants} className="relative h-12 w-12">
+          <motion.div variants={itemVariants} className="relative h-16 w-16">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIconIndex}
-                initial={{ opacity: 0, left: 50 }}
-                animate={{ opacity: 1, left: 0 }}
-                exit={{ opacity: 0, right: 50 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
                 <CurrentIcon />
@@ -344,164 +379,169 @@ export default function SignupPage() {
           </motion.div>
 
           <motion.h1
-            className="text-3xl font-bold tracking-tight lg:text-4xl"
+            className="text-4xl font-bold tracking-tight text-foreground lg:text-5xl"
             variants={itemVariants}
           >
-            Join Our Community. <br /> Start Your Journey.
+            Join Our Community. <br /> Launch Your Ideas.
           </motion.h1>
 
-          <motion.p className="text-muted-foreground" variants={itemVariants}>
+          <motion.p className="text-lg text-muted-foreground max-w-md" variants={itemVariants}>
             Create your <span className="font-semibold text-primary">Crowdfundify</span> account and
-            bring your ideas to life.
+            start raising funds with blockchain technology.
           </motion.p>
+
+          <motion.div variants={itemVariants} className="py-4">
+            <span className="text-sm text-muted-foreground">
+              Already have an account?{' '}
+              <Link href="/signin" className="font-medium text-primary hover:underline">
+                Sign In
+              </Link>
+            </span>
+          </motion.div>
         </motion.div>
 
         {/* Right Column: Signup Form */}
-        <div className="flex w-full flex-col items-center justify-center space-y-6">
-          {/* Signup Card */}
-          <Card className="w-full max-w-sm border-border/40 shadow-sm">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-fit md:hidden">
-                <IconIdea />
+        <div className="flex w-full flex-col items-center justify-center">
+          <Card className="w-full max-w-md border-border/40 shadow-md">
+            <CardHeader className="space-y-1">
+              <div className="mx-auto mb-2 flex justify-center lg:hidden">
+                <CurrentIcon />
               </div>
-              <CardTitle className="text-2xl font-semibold tracking-tight">Sign Up</CardTitle>
+              <CardTitle className="text-2xl font-semibold text-center">
+                Create an Account
+              </CardTitle>
+              <CardDescription className="text-center">
+                Join thousands of creators and backers
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+
+            <CardContent className="space-y-4 pt-0">
+              {signupError && (
+                <Alert variant="destructive" className="mb-4">
+                  <ExclamationTriangleIcon className="h-4 w-4" />
+                  <AlertDescription>{signupError}</AlertDescription>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Name input */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <Input
                     id="name"
                     name="name"
                     type="text"
-                    placeholder="Enter your full name"
+                    placeholder="John Doe"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`h-10 bg-secondary/30 border-border/40 focus:border-primary focus:ring-primary ${formErrors.name ? 'border-red-500' : ''}`}
-                    disabled={isLoadingSignup || isLoadingGoogle}
+                    className="h-11"
                   />
-                  {formErrors.name && <p className="text-xs text-red-500">{formErrors.name}</p>}
+                  {formErrors.name && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.name}</p>
+                  )}
                 </div>
 
-                {/* Email input */}
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Enter your email address"
+                    placeholder="name@example.com"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={`h-10 bg-secondary/30 border-border/40 focus:border-primary focus:ring-primary ${formErrors.email ? 'border-red-500' : ''}`}
-                    disabled={isLoadingSignup || isLoadingGoogle}
+                    className="h-11"
                   />
-                  {formErrors.email && <p className="text-xs text-red-500">{formErrors.email}</p>}
+                  {formErrors.email && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.email}</p>
+                  )}
                 </div>
 
-                {/* Password input */}
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
                     name="password"
                     type="password"
-                    placeholder="Create a password"
+                    placeholder="••••••••"
                     value={formData.password}
                     onChange={handleInputChange}
-                    className={`h-10 bg-secondary/30 border-border/40 focus:border-primary focus:ring-primary ${formErrors.password ? 'border-red-500' : ''}`}
-                    disabled={isLoadingSignup || isLoadingGoogle}
+                    className="h-11"
                   />
-                  {formErrors.password && (
-                    <p className="text-xs text-red-500">{formErrors.password}</p>
-                  )}
-                  {passwordStrength && formData.password && !formErrors.password && (
-                    <div className="flex items-center space-x-2 mt-1">
-                      <div className="h-1 flex-1 rounded-full bg-gray-200 overflow-hidden">
-                        <div
-                          className={`h-full ${passwordStrength === 'weak' ? 'w-1/3 bg-red-500' : passwordStrength === 'medium' ? 'w-2/3 bg-yellow-500' : 'w-full bg-green-500'}`}
-                        />
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {passwordStrength === 'weak'
-                          ? 'Weak'
-                          : passwordStrength === 'medium'
-                            ? 'Medium'
-                            : 'Strong'}
-                      </span>
+                  {formData.password && (
+                    <div className="mt-2 space-y-1">
+                      <Progress
+                        value={getPasswordStrengthProgress()}
+                        className={`h-1 ${getPasswordStrengthColor()}`}
+                      />
+                      <p className="text-xs text-muted-foreground flex justify-between">
+                        <span>Password strength:</span>
+                        <span
+                          className={
+                            passwordStrength === 'weak'
+                              ? 'text-red-500'
+                              : passwordStrength === 'medium'
+                                ? 'text-yellow-500'
+                                : 'text-green-500'
+                          }
+                        >
+                          {passwordStrength || 'None'}
+                        </span>
+                      </p>
                     </div>
+                  )}
+                  {formErrors.password && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.password}</p>
                   )}
                 </div>
 
-                {/* Confirm Password input */}
                 <div className="space-y-2">
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
-                    placeholder="Confirm your password"
+                    placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className={`h-10 bg-secondary/30 border-border/40 focus:border-primary focus:ring-primary ${formErrors.confirmPassword ? 'border-red-500' : ''}`}
-                    disabled={isLoadingSignup || isLoadingGoogle}
+                    className="h-11"
                   />
                   {formErrors.confirmPassword && (
-                    <p className="text-xs text-red-500">{formErrors.confirmPassword}</p>
+                    <p className="text-xs text-red-500 mt-1">{formErrors.confirmPassword}</p>
                   )}
                 </div>
 
-                {/* Sign up button */}
-                <Button
-                  type="submit"
-                  className="w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={isLoadingSignup || isLoadingGoogle}
-                  aria-disabled={isLoadingSignup || isLoadingGoogle}
-                >
-                  {isLoadingSignup ? 'Creating Account...' : 'Create Account'}
+                <Button type="submit" className="w-full h-11" disabled={isLoadingSignup}>
+                  {isLoadingSignup ? 'Creating Account...' : 'Sign Up'}
                 </Button>
               </form>
 
-              {/* Separator */}
-              <div className="relative my-6">
-                <Separator className="absolute left-0 top-1/2 w-full -translate-y-1/2 transform" />
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground font-medium">OR</span>
-                </div>
+              <div className="relative flex items-center justify-center">
+                <Separator className="absolute" />
+                <span className="relative bg-background px-2 text-xs text-muted-foreground">
+                  OR CONTINUE WITH
+                </span>
               </div>
 
-              {/* Google signup button */}
               <Button
-                variant="secondary"
-                className="w-full h-9 border border-transparent hover:bg-secondary/60"
+                type="button"
+                variant="outline"
+                className="w-full h-11 flex items-center gap-2"
                 onClick={handleGoogleSignup}
-                disabled={isLoadingGoogle || isLoadingSignup}
-                aria-disabled={isLoadingGoogle || isLoadingSignup}
+                disabled={isLoadingGoogle}
               >
-                {isLoadingGoogle ? (
-                  <span className="animate-spin mr-2">⏳</span>
-                ) : (
-                  <FaGoogle className="mr-2 h-4 w-4" />
-                )}
-                Sign up with Google
+                <FaGoogle className="h-4 w-4" />
+                {isLoadingGoogle ? 'Connecting...' : 'Google'}
               </Button>
-
-              {/* Error message display */}
-              {signupError && (
-                <div className="mt-2 text-center text-sm text-red-500">{signupError}</div>
-              )}
             </CardContent>
-          </Card>
 
-          {/* Sign In Card/Link */}
-          <Card className="w-full max-w-sm border-border/40 shadow-sm">
-            <CardContent className="p-4 text-center text-sm">
-              Already have an account?{' '}
-              <Link href="/signin" className="font-semibold text-primary hover:underline">
-                Sign in
-              </Link>
-            </CardContent>
+            <CardFooter className="flex justify-center border-t p-4 lg:hidden">
+              <div className="text-sm text-muted-foreground">
+                Already have an account?{' '}
+                <Link href="/signin" className="font-medium text-primary hover:underline">
+                  Sign In
+                </Link>
+              </div>
+            </CardFooter>
           </Card>
         </div>
       </div>

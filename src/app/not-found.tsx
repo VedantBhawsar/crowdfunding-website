@@ -49,9 +49,9 @@ export default function NotFound() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="gap-2">
-              <Link href="/projects">
+              <Link href="/campaigns">
                 <ArrowLeft className="w-4 h-4" />
-                Browse Projects
+                Browse Campaigns
               </Link>
             </Button>
           </motion.div>

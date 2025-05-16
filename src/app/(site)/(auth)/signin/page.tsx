@@ -2,7 +2,14 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +18,8 @@ import { FaGoogle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 // === Define Icons (Place the Icon components from Step 1 here) ===
 const IconIdea = () => (
   <svg
@@ -186,30 +195,23 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="container mx-auto grid max-w-6xl grid-cols-1 gap-12 md:grid-cols-2 md:items-center">
-        {/* Left Column: Branding & Visuals (Animated Icon) */}
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background p-4">
+      <div className="container mx-auto grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16 lg:items-center">
+        {/* Left Column: Branding & Visuals */}
         <motion.div
-          className="hidden min-h-[250px] flex-col items-center justify-center space-y-6 text-center md:flex" // Added min-h for layout stability during icon change
+          className="hidden flex-col items-center justify-center space-y-8 text-center lg:flex"
           variants={containerVariants}
           initial="hidden"
           animate="visible"
         >
-          {/* Apply item variant for initial entrance */}
-          <motion.div
-            variants={itemVariants}
-            className="relative h-12 w-12" // Set fixed height/width for the container
-          >
-            {/* AnimatePresence handles the transition between icons */}
+          <motion.div variants={itemVariants} className="relative h-16 w-16">
             <AnimatePresence mode="wait">
-              {' '}
-              {/* 'wait' ensures exit animation finishes before enter starts */}
               <motion.div
                 key={currentIconIndex}
-                initial={{ opacity: 0, left: 50 }}
-                animate={{ opacity: 1, left: 0 }}
-                exit={{ opacity: 0, right: 50 }}
-                transition={{ duration: 0.5 }}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
                 <CurrentIcon />
@@ -218,121 +220,113 @@ export default function SignInPage() {
           </motion.div>
 
           <motion.h1
-            className="text-3xl font-bold tracking-tight lg:text-4xl"
+            className="text-4xl font-bold tracking-tight text-foreground lg:text-5xl"
             variants={itemVariants}
           >
             Fund the Future. <br /> Empower Ideas.
           </motion.h1>
 
-          <motion.p className="text-muted-foreground" variants={itemVariants}>
+          <motion.p className="text-lg text-muted-foreground max-w-md" variants={itemVariants}>
             Join the <span className="font-semibold text-primary">Crowdfundify</span> community and
-            bring projects to life.
+            bring innovative projects to life through blockchain technology.
           </motion.p>
+
+          <motion.div variants={itemVariants} className="py-4">
+            <span className="text-sm text-muted-foreground">
+              Don{"'"}t have an account?{' '}
+              <Link href="/signup" className="font-medium text-primary hover:underline">
+                Sign Up
+              </Link>
+            </span>
+          </motion.div>
         </motion.div>
 
-        {/* Right Column: Login Form & Actions (Remains unchanged) */}
-        <div className="flex w-full flex-col items-center justify-center space-y-6">
-          {/* Login Card */}
-          <Card className="w-full max-w-sm border-border/40 shadow-sm">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 w-fit md:hidden">
-                {/* You might want the cycling icon here on mobile too? */}
-                {/* <div className="relative h-12 w-12"> <AnimatePresence>...</AnimatePresence> </div> */}
-                <IconIdea /> {/* Or just a static one */}
+        {/* Right Column: Login Form */}
+        <div className="flex w-full flex-col items-center justify-center">
+          <Card className="w-full max-w-md border-border/40 shadow-md">
+            <CardHeader className="space-y-1">
+              <div className="mx-auto mb-2 flex justify-center lg:hidden">
+                <CurrentIcon />
               </div>
-              <CardTitle className="text-2xl font-semibold tracking-tight">Log In</CardTitle>
+              <CardTitle className="text-2xl font-semibold text-center">Welcome Back</CardTitle>
+              <CardDescription className="text-center">
+                Sign in to your account to continue
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* --- Rest of your form and buttons --- */}
+
+            <CardContent className="space-y-4 pt-0">
+              {loginError && (
+                <Alert variant="destructive" className="mb-4">
+                  <ExclamationTriangleIcon className="h-4 w-4" />
+                  <AlertDescription>{loginError}</AlertDescription>
+                </Alert>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* ... email input ... */}
-                <div>
-                  <Label htmlFor="email" className="sr-only">
-                    Email or Username
-                  </Label>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="Mobile number, username or email address"
+                    placeholder="name@example.com"
                     required
-                    className="h-10 bg-secondary/30 border-border/40 focus:border-primary focus:ring-primary"
-                    disabled={isLoadingCredentials || isLoadingGoogle}
+                    className="h-11"
                   />
                 </div>
-                {/* ... password input ... */}
-                <div>
-                  <Label htmlFor="password" className="sr-only">
-                    Password
-                  </Label>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-sm font-medium text-primary hover:underline"
+                    >
+                      Forgot Password?
+                    </Link>
+                  </div>
                   <Input
                     id="password"
                     name="password"
                     type="password"
-                    placeholder="Password"
+                    placeholder="••••••••"
                     required
-                    className="h-10 bg-secondary/30 border-border/40 focus:border-primary focus:ring-primary"
-                    disabled={isLoadingCredentials || isLoadingGoogle}
+                    className="h-11"
                   />
                 </div>
-                {/* ... login button ... */}
-                <Button
-                  type="submit"
-                  className="w-full h-9 bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={isLoadingCredentials || isLoadingGoogle}
-                  aria-disabled={isLoadingCredentials || isLoadingGoogle}
-                >
-                  {isLoadingCredentials ? 'Logging in...' : 'Log in'}
+
+                <Button type="submit" className="w-full h-11" disabled={isLoadingCredentials}>
+                  {isLoadingCredentials ? 'Signing in...' : 'Sign In'}
                 </Button>
               </form>
 
-              {/* ... separator ... */}
-              <div className="relative my-6">
-                <Separator className="absolute left-0 top-1/2 w-full -translate-y-1/2 transform" />
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground font-medium">OR</span>
-                </div>
+              <div className="relative flex items-center justify-center">
+                <Separator className="absolute" />
+                <span className="relative bg-background px-2 text-xs text-muted-foreground">
+                  OR CONTINUE WITH
+                </span>
               </div>
 
-              {/* ... google button ... */}
               <Button
-                variant="secondary"
-                className="w-full h-9 border border-transparent hover:bg-secondary/60"
+                type="button"
+                variant="outline"
+                className="w-full h-11 flex items-center gap-2"
                 onClick={handleGoogleSignin}
-                disabled={isLoadingGoogle || isLoadingCredentials}
-                aria-disabled={isLoadingGoogle || isLoadingCredentials}
+                disabled={isLoadingGoogle}
               >
-                {isLoadingGoogle ? (
-                  <span className="animate-spin mr-2">⏳</span>
-                ) : (
-                  <FaGoogle className="mr-2 h-4 w-4" />
-                )}
-                Log in with Google
+                <FaGoogle className="h-4 w-4" />
+                {isLoadingGoogle ? 'Connecting...' : 'Google'}
               </Button>
+            </CardContent>
 
-              {/* ... forgotten password link ... */}
-              <div className="mt-4 text-center text-sm">
-                <Link href="/forgot-password" className="text-xs text-primary hover:underline">
-                  Forgotten password?
+            <CardFooter className="flex justify-center border-t p-4 lg:hidden">
+              <div className="text-sm text-muted-foreground">
+                Don{"'"}t have an account?{' '}
+                <Link href="/signup" className="font-medium text-primary hover:underline">
+                  Sign Up
                 </Link>
               </div>
-
-              {/* Error message display */}
-              {loginError && (
-                <div className="mt-2 text-center text-sm text-red-500">{loginError}</div>
-              )}
-              {/* --- End of form and buttons --- */}
-            </CardContent>
-          </Card>
-
-          {/* Sign Up Card/Link */}
-          <Card className="w-full max-w-sm border-border/40 shadow-sm">
-            <CardContent className="p-4 text-center text-sm">
-              Don&apos;t have an account?{' '}
-              <Link href="/sign-up" className="font-semibold text-primary hover:underline">
-                Sign up
-              </Link>
-            </CardContent>
+            </CardFooter>
           </Card>
         </div>
       </div>

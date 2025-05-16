@@ -27,16 +27,16 @@ export default function AboutPage() {
   };
 
   return (
-    <div className="py-10 bg-background">
+    <div className="py-10 bg-background max-w-7xl mx-auto px-4 mt-10">
       <div className="">
         <motion.div
-          initial="hidden"
-          animate="visible"
+          // initial="hidden"
+          // animate="visible"
           variants={containerAnimation}
           className="space-y-16"
         >
           <motion.div variants={itemAnimation} className="text-center space-y-4">
-            <h1 className="text-3xl font-bold text-primary">About DecentraliFund</h1>
+            <h1 className="text-3xl font-bold text-primary">About Crowdfundify</h1>
             <div className="h-1 w-20 bg-primary/20 mx-auto rounded-full" />
           </motion.div>
 

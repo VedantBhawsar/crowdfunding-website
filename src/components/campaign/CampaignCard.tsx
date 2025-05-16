@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Campaign as PrismaCampaign, CampaignCategory } from '@prisma/client'; // Import Prisma types
 import { motion } from 'framer-motion';
-import { MessageCircle, Paperclip, CalendarDays } from 'lucide-react';
+import { ArrowUpRight, Users, Clock } from 'lucide-react';
 
 // Helper function to format Prisma CampaignCategory enum to a display string
 const formatCampaignCategory = (category?: CampaignCategory): string => {
@@ -61,6 +61,9 @@ interface ExtendedCampaign extends PrismaCampaign {
   // attachmentsCount is not in the schema for Campaign directly.
   // We will simulate it or use a placeholder.
   attachmentsCountPlaceholder?: number;
+  // Add missing properties from the component usage
+  goal: number;
+  raisedAmount: number;
 }
 
 interface CampaignCardProps {
@@ -70,7 +73,6 @@ interface CampaignCardProps {
 const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
   const fallbackAvatar = campaign.creatorName ? campaign.creatorName.charAt(0).toUpperCase() : 'U';
 
-  console.log(campaign.creatorAvatar);
   const tagToDisplay = formatCampaignCategory(campaign.category);
 
   // Determine comments count:
@@ -86,6 +88,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
     (campaign.images?.length > 1 ? campaign.images.length - 1 : 0); // Example: using images count or a placeholder.
 
   const dueDateDisplay = formatDateRelativeToToday(campaign.endDate);
+  const backersCount = campaign._count?.backers ?? 0;
 
   const mainImage =
     campaign.images?.[0] ||
@@ -97,58 +100,106 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ campaign }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="block w-full cursor-pointer group"
+        className="block w-full cursor-pointer group h-full"
       >
-        <Card className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col p-5 md:p-6">
-          {/* Optional: Image Preview - uncomment if you want an image here */}
-          {/* <div className="relative w-full h-32 mb-4 rounded-md overflow-hidden">
+        <Card className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col border-slate-200 overflow-hidden group relative">
+          {/* Image Preview with gradient overlay */}
+          <div className="relative w-full h-48 overflow-hidden">
             <Image
               src={mainImage}
               alt={`${campaign.title} cover image`}
               fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              priority
               style={{ objectFit: 'cover' }}
-              className="group-hover:scale-105 transition-transform duration-300"
+              className="group-hover:scale-105 transition-transform duration-500"
             />
-          </div> */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
 
-          <div className="flex-grow">
-            <CardTitle className="text-xl font-bold text-teal-700 group-hover:text-teal-800 transition-colors duration-200 mb-1.5">
-              {campaign.title}
-            </CardTitle>
-            <p className="text-sm text-slate-500 mb-5 leading-relaxed line-clamp-2 min-h-[40px]">
-              {campaign.shortDescription}
-            </p>
-
-            <div className="flex items-center justify-between">
+            {/* Campaign category badge positioned on the image */}
+            <div className="absolute top-4 left-4 z-10">
               <Badge
                 variant="secondary"
-                className="bg-teal-50 text-teal-600 border border-teal-100 px-3.5 py-1.5 text-xs font-medium rounded-md hover:bg-teal-100 transition-colors"
+                className="bg-white/90 backdrop-blur-sm text-teal-600 border border-teal-100/50 px-2.5 py-1 text-xs font-medium rounded-md shadow-sm"
               >
                 {tagToDisplay}
               </Badge>
-              <Avatar className="w-8 h-8">
-                <AvatarImage
-                  src={campaign.creatorAvatar} // Use the field from your schema
-                  alt={campaign.creatorName || 'Creator'}
-                />
-              </Avatar>
+            </div>
+
+            {/* Creator positioned on the image */}
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
+              <div className="flex items-center space-x-2">
+                <Avatar className="w-7 h-7 border-2 border-white/80">
+                  <AvatarImage
+                    src={campaign.creatorAvatar} // Use the field from your schema
+                    alt={campaign.creatorName || 'Creator'}
+                  />
+                  <AvatarFallback className="bg-teal-500 text-white text-xs">
+                    {fallbackAvatar}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-medium text-white/90 line-clamp-1">
+                  {campaign.creatorName || 'Anonymous'}
+                </span>
+              </div>
             </div>
           </div>
 
-          <CardFooter className="border-t border-slate-200 pt-4 pb-0 px-0 mt-6">
-            <div className="flex items-center justify-between w-full text-sm text-slate-600">
-              {/* <div className="flex items-center gap-1.5">
-                <MessageCircle className="w-4 h-4 text-slate-400" />
-                <span>{commentsCount}</span>
-              </div> */}
+          <div className="flex-grow p-5">
+            <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-teal-700 transition-colors duration-200 mb-2 line-clamp-2">
+              {campaign.title}
+            </CardTitle>
+            <p className="text-sm text-slate-600 mb-4 leading-relaxed line-clamp-2 min-h-[40px]">
+              {campaign.shortDescription}
+            </p>
+
+            {/* Progress Bar */}
+            {campaign.goal > 0 && (
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-1.5 text-xs text-slate-600">
+                  <span className="font-medium">
+                    {Math.round((campaign.raisedAmount / campaign.goal) * 100)}% Funded
+                  </span>
+                  <span>
+                    {campaign.raisedAmount} / {campaign.goal} ETH
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-teal-500 to-teal-400 rounded-full"
+                    initial={{ width: '0%' }}
+                    animate={{
+                      width: `${Math.min(Math.round((campaign.raisedAmount / campaign.goal) * 100), 100)}%`,
+                    }}
+                    transition={{ duration: 1, delay: 0.2 }}
+                  ></motion.div>
+                </div>
+              </div>
+            )}
+
+            {/* Stats row */}
+            <div className="flex items-center justify-between text-xs text-slate-600 mt-4">
               <div className="flex items-center gap-1.5">
-                <Paperclip className="w-4 h-4 text-slate-400" />
-                <span>{attachmentsDisplayCount}</span> {/* Using the placeholder or image count */}
+                <Users className="w-3.5 h-3.5 text-slate-400" />
+                <span>{backersCount} backers</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <CalendarDays className="w-4 h-4 text-slate-400" />
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
                 <span>{dueDateDisplay}</span>
               </div>
+            </div>
+          </div>
+
+          <CardFooter className="border-t border-slate-100 p-3 bg-slate-50/50">
+            <div className="w-full flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-500">View details</span>
+              <motion.div
+                className="h-7 w-7 rounded-full flex items-center justify-center bg-teal-100/50 group-hover:bg-teal-100 transition-colors"
+                whileHover={{ rotate: 45 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ArrowUpRight className="h-3.5 w-3.5 text-teal-600" />
+              </motion.div>
             </div>
           </CardFooter>
         </Card>

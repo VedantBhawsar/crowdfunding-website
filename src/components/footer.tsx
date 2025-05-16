@@ -1,10 +1,7 @@
 'use client';
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Twitter, Linkedin, Facebook, Instagram, Github } from 'lucide-react';
 import Link from 'next/link';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
 
 const socialLinks = [
   { icon: Twitter, href: '#', label: 'Twitter' },
