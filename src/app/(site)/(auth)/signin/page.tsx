@@ -11,8 +11,6 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { FaGoogle } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,11 +18,12 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-// === Define Icons (Place the Icon components from Step 1 here) ===
+
+// === Define Icons ===
 const IconIdea = () => (
   <svg
-    width="48"
-    height="48"
+    width="52"
+    height="52"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -43,8 +42,8 @@ const IconIdea = () => (
 
 const IconCommunity = () => (
   <svg
-    width="48"
-    height="48"
+    width="52"
+    height="52"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -62,8 +61,8 @@ const IconCommunity = () => (
 
 const IconGrowth = () => (
   <svg
-    width="48"
-    height="48"
+    width="52"
+    height="52"
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
@@ -79,11 +78,28 @@ const IconGrowth = () => (
   </svg>
 );
 
-// Array of icon components
-const icons = [IconIdea, IconCommunity, IconGrowth];
-// === End Icon Definitions ===
+// Additional icon for enhanced UI
+const IconRocket = () => (
+  <svg
+    width="52"
+    height="52"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className="text-primary"
+  >
+    <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+    <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+    <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+    <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+  </svg>
+);
 
-// Function for handling Credentials login
+// Array of icon components
+const icons = [IconIdea, IconCommunity, IconGrowth, IconRocket];
 
 // --- Animation Variants ---
 const containerVariants = {
@@ -109,73 +125,45 @@ const itemVariants = {
   },
 };
 
-const iconTransitionVariants = {
-  initial: { opacity: 0, scale: 0.95 }, // Start slightly smaller and faded
-  animate: { opacity: 1, scale: 1 }, // Fade in and scale to normal
-  exit: { opacity: 0, scale: 0.95 }, // Fade out and scale down slightly
+const cardVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: 'spring',
+      stiffness: 80,
+      delay: 0.2,
+    },
+  },
 };
-// --- End Animation Variants ---
+
+const buttonVariants = {
+  hover: {
+    scale: 1.03,
+    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.1)',
+    transition: { type: 'spring', stiffness: 400 },
+  },
+  tap: { scale: 0.97 },
+};
 
 export default function SignInPage() {
   const router = useRouter();
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
-  const [isLoadingCredentials, setIsLoadingCredentials] = useState(false);
-  const [currentIconIndex, setCurrentIconIndex] = useState(0); // State for current icon index
+  const [currentIconIndex, setCurrentIconIndex] = useState(0);
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // Effect to change the icon periodically
   useEffect(() => {
     const intervalId = setInterval(() => {
-      setCurrentIconIndex(prevIndex => (prevIndex + 1) % icons.length); // Cycle through icons
-    }, 4000); // Change icon every 4 seconds (adjust timing as needed)
+      setCurrentIconIndex(prevIndex => (prevIndex + 1) % icons.length);
+    }, 4000);
 
-    // Clear interval on component unmount to prevent memory leaks
     return () => clearInterval(intervalId);
-  }, []); // Empty dependency array means this effect runs only once on mount
+  }, []);
 
   // Get the current icon component based on the index
   const CurrentIcon = icons[currentIconIndex];
-
-  // Handle form submission for credentials login
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoadingCredentials(true);
-    setLoginError(null);
-
-    try {
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get('email') as string;
-      const password = formData.get('password') as string;
-
-      if (!email || !password) {
-        setLoginError('Email and password are required');
-        setIsLoadingCredentials(false);
-        return;
-      }
-
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        console.error('Login error:', result.error);
-        setLoginError('Invalid email or password. Please try again.');
-        setIsLoadingCredentials(false);
-      } else if (result?.url) {
-        // Successful login - redirect to callback URL or dashboard
-        router.push(result.url);
-      } else {
-        // Fallback redirect to dashboard if no URL is provided
-        router.push('/account');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setLoginError('An error occurred during login. Please try again.');
-      setIsLoadingCredentials(false);
-    }
-  };
 
   // Handle Google sign-in
   const handleGoogleSignin = async () => {
@@ -195,7 +183,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background p-4">
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-background p-4 overflow-hidden">
       <div className="container mx-auto grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16 lg:items-center">
         {/* Left Column: Branding & Visuals */}
         <motion.div
@@ -204,14 +192,14 @@ export default function SignInPage() {
           initial="hidden"
           animate="visible"
         >
-          <motion.div variants={itemVariants} className="relative h-16 w-16">
+          <motion.div variants={itemVariants} className="relative h-20 w-20">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentIconIndex}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.4 }}
+                initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.9, rotate: 5 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="absolute inset-0 flex items-center justify-center"
               >
                 <CurrentIcon />
@@ -220,41 +208,43 @@ export default function SignInPage() {
           </motion.div>
 
           <motion.h1
-            className="text-4xl font-bold tracking-tight text-foreground lg:text-5xl"
+            className="text-6xl font-bold tracking-tight text-transparent lg:text-5xl bg-clip-text bg-gradient-to-r from-primary to-primary/70"
             variants={itemVariants}
           >
             Fund the Future. <br /> Empower Ideas.
           </motion.h1>
 
-          <motion.p className="text-lg text-muted-foreground max-w-md" variants={itemVariants}>
+          <motion.p className="text-base text-slate-600 max-w-md" variants={itemVariants}>
             Join the <span className="font-semibold text-primary">Crowdfundify</span> community and
             bring innovative projects to life through blockchain technology.
           </motion.p>
-
-          <motion.div variants={itemVariants} className="py-4">
-            <span className="text-sm text-muted-foreground">
-              Don{"'"}t have an account?{' '}
-              <Link href="/signup" className="font-medium text-primary hover:underline">
-                Sign Up
-              </Link>
-            </span>
-          </motion.div>
         </motion.div>
 
         {/* Right Column: Login Form */}
-        <div className="flex w-full flex-col items-center justify-center">
-          <Card className="w-full max-w-md border-border/40 shadow-md">
-            <CardHeader className="space-y-1">
-              <div className="mx-auto mb-2 flex justify-center lg:hidden">
-                <CurrentIcon />
+        <motion.div
+          className="flex w-full flex-col items-center justify-center"
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+        >
+          <Card className="w-full max-w-md shadow-lg bg-background/95 backdrop-blur-sm">
+            <CardHeader className="space-y-3">
+              <div className="mx-auto flex justify-center lg:hidden">
+                <motion.div
+                  initial={{ rotate: -5 }}
+                  animate={{ rotate: 0 }}
+                  transition={{ duration: 0.5, ease: 'easeOut' }}
+                >
+                  <CurrentIcon />
+                </motion.div>
               </div>
-              <CardTitle className="text-2xl font-semibold text-center">Welcome Back</CardTitle>
-              <CardDescription className="text-center">
-                Sign in to your account to continue
+              <CardTitle className="text-3xl font-bold text-center">Welcome Back</CardTitle>
+              <CardDescription className="text-center text-base">
+                Sign in to your account and continue your journey
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 pt-0">
+            <CardContent className="space-y-6 pt-0">
               {loginError && (
                 <Alert variant="destructive" className="mb-4">
                   <ExclamationTriangleIcon className="h-4 w-4" />
@@ -262,73 +252,31 @@ export default function SignInPage() {
                 </Alert>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="name@example.com"
-                    required
-                    className="h-11"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <Link
-                      href="/forgot-password"
-                      className="text-sm font-medium text-primary hover:underline"
-                    >
-                      Forgot Password?
-                    </Link>
-                  </div>
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    required
-                    className="h-11"
-                  />
-                </div>
-
-                <Button type="submit" className="w-full h-11" disabled={isLoadingCredentials}>
-                  {isLoadingCredentials ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </form>
-
-              <div className="relative flex items-center justify-center">
+              <motion.div
+                className="relative flex items-center justify-center my-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
                 <Separator className="absolute" />
-                <span className="relative bg-background px-2 text-xs text-muted-foreground">
-                  OR CONTINUE WITH
+                <span className="relative bg-background px-3 text-sm font-medium text-muted-foreground">
+                  SIGN IN WITH
                 </span>
-              </div>
+              </motion.div>
 
               <Button
                 type="button"
-                variant="outline"
-                className="w-full h-11 flex items-center gap-2"
+                variant="default"
+                className="w-full h-12 text-base flex items-center gap-3 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary hover:bg-primary/90"
                 onClick={handleGoogleSignin}
                 disabled={isLoadingGoogle}
               >
-                <FaGoogle className="h-4 w-4" />
-                {isLoadingGoogle ? 'Connecting...' : 'Google'}
+                <FaGoogle className="h-5 w-5" />
+                {isLoadingGoogle ? 'Connecting...' : 'Continue with Google'}
               </Button>
             </CardContent>
-
-            <CardFooter className="flex justify-center border-t p-4 lg:hidden">
-              <div className="text-sm text-muted-foreground">
-                Don{"'"}t have an account?{' '}
-                <Link href="/signup" className="font-medium text-primary hover:underline">
-                  Sign Up
-                </Link>
-              </div>
-            </CardFooter>
           </Card>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

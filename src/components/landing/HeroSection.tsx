@@ -19,7 +19,7 @@ import {
   Shield,
   Zap,
 } from 'lucide-react';
-
+import Link from 'next/link';
 // Create a context for cursor state
 interface CursorContextType {
   cursorType: string;
@@ -188,13 +188,15 @@ const HeroSection = () => {
                 variants={fadeInUpVariants}
                 className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-4 mb-8 sm:mb-10"
               >
-                <Button
-                  size="lg"
-                  className="bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 text-white rounded-lg px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-semibold w-full sm:w-auto group transition-all duration-300 shadow-md hover:shadow-lg"
-                >
-                  Launch Campaign
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
+                <Link href="/signin">
+                  <Button
+                    size="lg"
+                    className="bg-gradient-to-r from-teal-700 to-teal-600 hover:from-teal-800 hover:to-teal-700 text-white rounded-lg px-6 sm:px-8 py-2.5 sm:py-3 text-sm sm:text-base font-semibold w-full sm:w-auto group transition-all duration-300 shadow-md hover:shadow-lg"
+                  >
+                    Launch Campaign
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Button>
+                </Link>
               </motion.div>
 
               <motion.div
