@@ -522,7 +522,7 @@ export default function SupportPage() {
                 </CardHeader>
                 <CardContent className="text-sm">
                   <p className="mb-4">
-                    Understanding how our platform&apos;s smart contracts work for campaign funding,
+                    Understanding how our platform's smart contracts work for campaign funding,
                     milestone verification, and reward distribution.
                   </p>
                   <Button

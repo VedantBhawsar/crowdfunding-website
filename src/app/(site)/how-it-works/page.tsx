@@ -129,7 +129,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <div className="container max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="container max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8 mt-10">
       {/* Hero Section */}
       <motion.div
         className="text-center mb-20"

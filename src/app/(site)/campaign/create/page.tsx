@@ -396,7 +396,7 @@ export default function CreateCampaignPage() {
     milestonesData[milestonesData.length - 1]?.completionPercentage === 100;
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 mt-10">
       <div className="mb-8 space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Create a New Campaign</h1>
         <p className="text-muted-foreground">Fill in the details below to launch your project.</p>
